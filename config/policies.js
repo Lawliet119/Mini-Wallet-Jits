@@ -17,6 +17,12 @@ module.exports.policies = {
   *                                                                          *
   ***************************************************************************/
 
-  // '*': true,
+  AccessController: {
+    registerCustomer: true,
+    loginCustomer: true,
+    registerOfficer: true,
+    loginOfficer: true,
+    me: ['bearer']
+  },
 
 };

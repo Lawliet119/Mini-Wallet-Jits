@@ -21,6 +21,12 @@ module.exports.routes = {
 
   '/': { view: 'pages/homepage' },
 
+  'POST /api/v1/customers/register': 'AccessController.registerCustomer',
+  'POST /api/v1/customers/login': 'AccessController.loginCustomer',
+  'POST /api/v1/officers/register': 'AccessController.registerOfficer',
+  'POST /api/v1/officers/login': 'AccessController.loginOfficer',
+  'GET /api/v1/access/me': 'AccessController.me',
+
 
   /***************************************************************************
   *                                                                          *
