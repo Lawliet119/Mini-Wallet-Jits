@@ -2,7 +2,7 @@
 
 Tài liệu này là gói thiết kế mức high-level cho Week 2. Nội dung gồm:
 
-- Sequence P2P đã làm trong mini-mini-wallet (`F:\Self_Sails\wep_app`).
+- Sequence P2P đã làm trong mini-mini-wallet.
 - Overview các model cần có cho mini-wallet config-driven.
 - Ba sequence thiết kế: P2P transfer, Cash-in, Bill Payment.
 
