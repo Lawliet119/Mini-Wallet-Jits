@@ -64,6 +64,10 @@ module.exports = {
     code: 4001,
     message: 'Transaction trail not found'
   },
+  TRANSACTION_NOT_FOUND: {
+    code: 4002,
+    message: 'Transaction not found'
+  },
   SERVER_ERROR: {
     code: 500,
     message: 'Internal server error'

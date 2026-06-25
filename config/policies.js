@@ -28,7 +28,14 @@ module.exports.policies = {
   TransactionController: {
     requestP2P: ['bearer', 'isCustomer'],
     confirmP2P: ['bearer', 'isCustomer'],
-    verifyP2P: ['bearer', 'isCustomer']
+    verifyP2P: ['bearer', 'isCustomer'],
+    history: ['bearer', 'isCustomer'],
+    detail: ['bearer', 'isCustomer'],
+    trailDetail: ['bearer', 'isCustomer']
+  },
+
+  WalletController: {
+    balance: ['bearer', 'isCustomer']
   },
 
 };
