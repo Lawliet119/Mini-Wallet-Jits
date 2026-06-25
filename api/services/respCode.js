@@ -68,6 +68,18 @@ module.exports = {
     code: 4002,
     message: 'Transaction not found'
   },
+  BILLER_NOT_FOUND: {
+    code: 5001,
+    message: 'Biller not found'
+  },
+  INVOICE_NOT_FOUND: {
+    code: 5002,
+    message: 'Invoice not found'
+  },
+  INVOICE_ALREADY_PAID: {
+    code: 5003,
+    message: 'Invoice is already paid'
+  },
   SERVER_ERROR: {
     code: 500,
     message: 'Internal server error'

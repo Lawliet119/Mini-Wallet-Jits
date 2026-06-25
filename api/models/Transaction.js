@@ -38,6 +38,10 @@ module.exports = {
       model: 'customer'
     },
 
+    biller: {
+      model: 'biller'
+    },
+
     amount: {
       type: 'number',
       required: true

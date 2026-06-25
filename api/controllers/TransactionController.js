@@ -18,6 +18,18 @@ var toPublicCustomer = function(customer) {
   };
 };
 
+var toPublicBiller = function(biller) {
+  if (!biller) {
+    return null;
+  }
+
+  return {
+    id: biller.id,
+    code: biller.code,
+    name: biller.name
+  };
+};
+
 var toPublicTransaction = function(transaction, currentCustomerId) {
   var senderId = transaction.sender ? transaction.sender.id || transaction.sender : null;
   var isOutgoing = senderId && String(senderId) === String(currentCustomerId);
@@ -30,6 +42,7 @@ var toPublicTransaction = function(transaction, currentCustomerId) {
     direction: isOutgoing ? 'OUT' : 'IN',
     sender: toPublicCustomer(transaction.sender),
     receiver: toPublicCustomer(transaction.receiver),
+    biller: toPublicBiller(transaction.biller),
     amount: transaction.amount,
     fee: transaction.fee,
     totalAmount: transaction.totalAmount,
@@ -40,6 +53,50 @@ var toPublicTransaction = function(transaction, currentCustomerId) {
 };
 
 module.exports = {
+  requestBillPayment: async function(req, res) {
+    try {
+      var preview = await billPaymentService.request({
+        customerId: req.info.user.id,
+        billerId: req.body.billerId,
+        billCode: req.body.billCode
+      });
+
+      return res.ok(preview);
+    } catch (err) {
+      sails.log.warn(err);
+      return res.error(codeMap(err));
+    }
+  },
+
+  confirmBillPayment: async function(req, res) {
+    try {
+      var result = await billPaymentService.confirm({
+        customerId: req.info.user.id,
+        transRefId: req.body.transRefId
+      });
+
+      return res.ok(result);
+    } catch (err) {
+      sails.log.warn(err);
+      return res.error(codeMap(err));
+    }
+  },
+
+  verifyBillPayment: async function(req, res) {
+    try {
+      var result = await billPaymentService.verify({
+        customerId: req.info.user.id,
+        transRefId: req.body.transRefId,
+        pin: req.body.pin
+      });
+
+      return res.ok(result);
+    } catch (err) {
+      sails.log.warn(err);
+      return res.error(codeMap(err));
+    }
+  },
+
   cashIn: async function(req, res) {
     try {
       var result = await cashInService.execute({
@@ -116,6 +173,7 @@ module.exports = {
       var transactions = await Transaction.find(criteria)
         .populate('sender')
         .populate('receiver')
+        .populate('biller')
         .sort('createdAt DESC')
         .limit(limit)
         .skip(skip);
@@ -146,6 +204,7 @@ module.exports = {
       })
       .populate('sender')
       .populate('receiver')
+      .populate('biller')
       .populate('trail');
 
       if (!transaction) {
@@ -183,6 +242,7 @@ module.exports = {
       })
       .populate('sender')
       .populate('receiver')
+      .populate('biller')
       .populate('transaction');
 
       if (!trail) {
@@ -206,6 +266,7 @@ module.exports = {
           status: trail.status,
           sender: toPublicCustomer(trail.sender),
           receiver: toPublicCustomer(trail.receiver),
+          biller: toPublicBiller(trail.biller),
           inputMessage: trail.inputMessage,
           outputMessage: trail.outputMessage,
           transStepLog: trail.transStepLog,

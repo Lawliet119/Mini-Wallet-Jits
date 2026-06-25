@@ -45,4 +45,7 @@ module.exports.bootstrap = async function() {
     currency: currency
   });
 
+  var biller = await mockBillerService.ensureDefaultData();
+  sails.log.info('Mock biller ready:', biller.code);
+
 };

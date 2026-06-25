@@ -46,6 +46,19 @@ module.exports = {
     });
   },
 
+  createBillerPocket: async function(currency) {
+    var pocket = await Pocket.create({
+      client: 'biller',
+      currency: currency || 'VND',
+      balance: 0,
+      checksum: null
+    }).fetch();
+
+    return Pocket.updateOne({ id: pocket.id }).set({
+      checksum: checksumService.signPocket(pocket)
+    });
+  },
+
   createCustomerPocket: async function(customerId, currency) {
     var pocket = await Pocket.create({
       client: 'customer',

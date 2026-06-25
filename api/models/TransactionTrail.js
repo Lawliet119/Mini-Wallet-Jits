@@ -34,6 +34,10 @@ module.exports = {
       model: 'customer'
     },
 
+    biller: {
+      model: 'biller'
+    },
+
     inputMessage: {
       type: 'json'
     },

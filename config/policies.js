@@ -26,6 +26,9 @@ module.exports.policies = {
   },
 
   TransactionController: {
+    requestBillPayment: ['bearer', 'isCustomer'],
+    confirmBillPayment: ['bearer', 'isCustomer'],
+    verifyBillPayment: ['bearer', 'isCustomer'],
     cashIn: ['bearer', 'isOfficer'],
     requestP2P: ['bearer', 'isCustomer'],
     confirmP2P: ['bearer', 'isCustomer'],
@@ -37,6 +40,10 @@ module.exports.policies = {
 
   WalletController: {
     balance: ['bearer', 'isCustomer']
+  },
+
+  BillerController: {
+    list: ['bearer', 'isCustomer']
   },
 
 };
