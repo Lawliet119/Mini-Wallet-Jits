@@ -26,6 +26,9 @@ module.exports.routes = {
   'POST /api/v1/officers/register': 'AccessController.registerOfficer',
   'POST /api/v1/officers/login': 'AccessController.loginOfficer',
   'GET /api/v1/access/me': 'AccessController.me',
+  'POST /api/v1/transactions/p2p/request': 'TransactionController.requestP2P',
+  'POST /api/v1/transactions/p2p/confirm': 'TransactionController.confirmP2P',
+  'POST /api/v1/transactions/p2p/verify': 'TransactionController.verifyP2P',
 
 
   /***************************************************************************

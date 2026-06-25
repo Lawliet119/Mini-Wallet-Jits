@@ -25,4 +25,10 @@ module.exports.policies = {
     me: ['bearer']
   },
 
+  TransactionController: {
+    requestP2P: ['bearer', 'isCustomer'],
+    confirmP2P: ['bearer', 'isCustomer'],
+    verifyP2P: ['bearer', 'isCustomer']
+  },
+
 };

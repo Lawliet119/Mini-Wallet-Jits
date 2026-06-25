@@ -48,6 +48,18 @@ module.exports = {
     code: 3002,
     message: 'Insufficient balance'
   },
+  RECEIVER_NOT_FOUND: {
+    code: 3003,
+    message: 'Receiver not found'
+  },
+  CANNOT_TRANSFER_TO_SELF: {
+    code: 3004,
+    message: 'Cannot transfer to yourself'
+  },
+  TRANSFER_FAILED: {
+    code: 3005,
+    message: 'Transfer failed'
+  },
   TRANSACTION_TRAIL_NOT_FOUND: {
     code: 4001,
     message: 'Transaction trail not found'
