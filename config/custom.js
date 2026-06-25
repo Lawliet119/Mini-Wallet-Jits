@@ -21,6 +21,10 @@ module.exports.custom = {
   bootstrapSeed: process.env.BOOTSTRAP_SEED !== 'false',
   seedOfficerPhone: process.env.SEED_OFFICER_PHONE || '0900000000',
   seedOfficerPin: process.env.SEED_OFFICER_PIN || '123456',
+  seedCustomerPhone: process.env.SEED_CUSTOMER_PHONE || '0703900625',
+  seedReceiverPhone: process.env.SEED_RECEIVER_PHONE || '0334760905',
+  seedCustomerPin: process.env.SEED_CUSTOMER_PIN || '123456',
+  seedCustomerBalance: Number(process.env.SEED_CUSTOMER_BALANCE) || 500000,
   seedBankBalance: Number(process.env.SEED_BANK_BALANCE) || 1000000000,
   seedCurrency: process.env.SEED_CURRENCY || 'VND',
 
