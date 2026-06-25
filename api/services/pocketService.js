@@ -20,6 +20,32 @@ var signPatch = function(pocket, patch) {
 };
 
 module.exports = {
+  createInternalPocket: async function(client, options) {
+    if (client !== 'bank' && client !== 'system') {
+      throw makeError('BAD_REQUEST');
+    }
+
+    var existedPocket = await Pocket.findOne({
+      client: client,
+      currency: options.currency || 'VND'
+    });
+
+    if (existedPocket) {
+      return this.getVerifiedPocket(existedPocket.id);
+    }
+
+    var pocket = await Pocket.create({
+      client: client,
+      currency: options.currency || 'VND',
+      balance: options.balance || 0,
+      checksum: null
+    }).fetch();
+
+    return Pocket.updateOne({ id: pocket.id }).set({
+      checksum: checksumService.signPocket(pocket)
+    });
+  },
+
   createCustomerPocket: async function(customerId, currency) {
     var pocket = await Pocket.create({
       client: 'customer',

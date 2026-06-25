@@ -26,6 +26,7 @@ module.exports.policies = {
   },
 
   TransactionController: {
+    cashIn: ['bearer', 'isOfficer'],
     requestP2P: ['bearer', 'isCustomer'],
     confirmP2P: ['bearer', 'isCustomer'],
     verifyP2P: ['bearer', 'isCustomer'],

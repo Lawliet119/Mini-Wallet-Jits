@@ -19,7 +19,8 @@ var toPublicCustomer = function(customer) {
 };
 
 var toPublicTransaction = function(transaction, currentCustomerId) {
-  var isOutgoing = String(transaction.sender.id || transaction.sender) === String(currentCustomerId);
+  var senderId = transaction.sender ? transaction.sender.id || transaction.sender : null;
+  var isOutgoing = senderId && String(senderId) === String(currentCustomerId);
 
   return {
     id: transaction.id,
@@ -39,6 +40,22 @@ var toPublicTransaction = function(transaction, currentCustomerId) {
 };
 
 module.exports = {
+  cashIn: async function(req, res) {
+    try {
+      var result = await cashInService.execute({
+        officerId: req.info.user.id,
+        customerPhone: req.body.customerPhone,
+        amount: req.body.amount,
+        currency: req.body.currency || 'VND'
+      });
+
+      return res.ok(result);
+    } catch (err) {
+      sails.log.warn(err);
+      return res.error(codeMap(err));
+    }
+  },
+
   requestP2P: async function(req, res) {
     try {
       var preview = await p2pService.request({
@@ -135,8 +152,10 @@ module.exports = {
         return res.error(respCode.TRANSACTION_NOT_FOUND);
       }
 
-      var isParticipant = String(transaction.sender.id) === String(customerId) ||
-        String(transaction.receiver.id) === String(customerId);
+      var senderId = transaction.sender ? transaction.sender.id || transaction.sender : null;
+      var receiverId = transaction.receiver ? transaction.receiver.id || transaction.receiver : null;
+      var isParticipant = String(senderId) === String(customerId) ||
+        String(receiverId) === String(customerId);
 
       if (!isParticipant) {
         return res.error(respCode.FORBIDDEN);
@@ -170,8 +189,10 @@ module.exports = {
         return res.error(respCode.TRANSACTION_TRAIL_NOT_FOUND);
       }
 
-      var isParticipant = String(trail.sender.id || trail.sender) === String(customerId) ||
-        String(trail.receiver.id || trail.receiver) === String(customerId);
+      var senderId = trail.sender ? trail.sender.id || trail.sender : null;
+      var receiverId = trail.receiver ? trail.receiver.id || trail.receiver : null;
+      var isParticipant = String(senderId) === String(customerId) ||
+        String(receiverId) === String(customerId);
 
       if (!isParticipant) {
         return res.error(respCode.FORBIDDEN);
