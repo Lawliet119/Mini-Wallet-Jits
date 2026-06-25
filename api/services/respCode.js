@@ -48,6 +48,10 @@ module.exports = {
     code: 3002,
     message: 'Insufficient balance'
   },
+  TRANSACTION_TRAIL_NOT_FOUND: {
+    code: 4001,
+    message: 'Transaction trail not found'
+  },
   SERVER_ERROR: {
     code: 500,
     message: 'Internal server error'
