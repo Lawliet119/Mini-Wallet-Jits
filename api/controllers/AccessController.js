@@ -48,12 +48,7 @@ module.exports = {
         pinHash: await pinService.hash(pin)
       }).fetch();
 
-      var pocket = await Pocket.create({
-        client: 'customer',
-        customer: customer.id,
-        currency: req.body.currency || 'VND',
-        balance: 0
-      }).fetch();
+      var pocket = await pocketService.createCustomerPocket(customer.id, req.body.currency);
 
       var accessToken = tokenService.issue(customer, 'customer');
 

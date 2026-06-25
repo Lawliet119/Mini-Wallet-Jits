@@ -32,6 +32,22 @@ module.exports = {
     code: 1003,
     message: 'Account is locked'
   },
+  POCKET_NOT_FOUND: {
+    code: 2001,
+    message: 'Pocket not found'
+  },
+  POCKET_CHECKSUM_INVALID: {
+    code: 2002,
+    message: 'Pocket checksum is invalid'
+  },
+  INVALID_AMOUNT: {
+    code: 3001,
+    message: 'Amount must be a positive integer'
+  },
+  INSUFFICIENT_BALANCE: {
+    code: 3002,
+    message: 'Insufficient balance'
+  },
   SERVER_ERROR: {
     code: 500,
     message: 'Internal server error'

@@ -17,5 +17,6 @@ module.exports.custom = {
   ***************************************************************************/
   jwtSecret: process.env.JWT_SECRET || 'dev-mini-wallet-change-me',
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '2h',
+  checksumSecret: process.env.CHECKSUM_SECRET || 'dev-pocket-checksum-change-me',
 
 };

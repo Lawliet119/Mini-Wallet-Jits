@@ -34,6 +34,16 @@ module.exports = {
       type: 'string',
       isIn: ['active', 'locked'],
       defaultsTo: 'active'
+    },
+
+    debitEntries: {
+      collection: 'pocketentry',
+      via: 'debitPocket'
+    },
+
+    creditEntries: {
+      collection: 'pocketentry',
+      via: 'creditPocket'
     }
   }
 };
