@@ -30,6 +30,8 @@ module.exports.routes = {
   'GET /api/v1/access/me': 'AccessController.me',
   'GET /api/v1/wallet/balance': 'WalletController.balance',
   'GET /api/v1/billers': 'BillerController.list',
+  'GET /api/v1/config/services': 'ConfigController.listServices',
+  'GET /api/v1/config/services/:code': 'ConfigController.serviceDetail',
   'GET /api/v1/transactions/history': 'TransactionController.history',
   'GET /api/v1/transactions/trails/:transRefId': 'TransactionController.trailDetail',
   'GET /api/v1/transactions/:id': 'TransactionController.detail',

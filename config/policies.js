@@ -46,4 +46,9 @@ module.exports.policies = {
     list: ['bearer', 'isCustomer']
   },
 
+  ConfigController: {
+    listServices: ['bearer', 'isOfficer'],
+    serviceDetail: ['bearer', 'isOfficer']
+  },
+
 };

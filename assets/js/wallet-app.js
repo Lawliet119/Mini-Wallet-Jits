@@ -156,6 +156,15 @@
     return new Intl.NumberFormat('vi-VN').format(Number(amount || 0)) + ' ' + (currency || 'VND');
   }
 
+  function escapeHtml(valueText) {
+    return String(valueText === null || valueText === undefined ? '' : valueText)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
   async function customerLogin(register) {
     var data = await api(register ? '/api/v1/customers/register' : '/api/v1/customers/login', {
       method: 'POST',
@@ -324,6 +333,65 @@
     return data;
   }
 
+  async function loadConfigServices() {
+    var data = await api('/api/v1/config/services', {
+      role: 'officer'
+    });
+    var list = root.querySelector('[data-list="services"]');
+    list.innerHTML = '';
+    data.services.forEach((service) => {
+      var button = document.createElement('button');
+      button.className = 'service-card';
+      button.type = 'button';
+      button.dataset.serviceCode = service.code;
+      button.innerHTML = [
+        '<strong>' + escapeHtml(service.code) + '</strong>',
+        '<span>' + escapeHtml(service.name) + '</span>',
+        '<small>' + escapeHtml(service.type) + ' / ' + escapeHtml(service.authMethod) + '</small>'
+      ].join('');
+      list.appendChild(button);
+    });
+    setText('[data-state="config"]', data.services.length + ' service(s)');
+    return data;
+  }
+
+  function renderConfigBlock(title, rows, mapper) {
+    if (!rows.length) {
+      return '<section class="config-block"><h3>' + escapeHtml(title) + '</h3><small>No data</small></section>';
+    }
+
+    return '<section class="config-block"><h3>' + escapeHtml(title) + '</h3>' + rows.map((row) => {
+      var cells = mapper(row);
+      return '<div class="config-row"><strong>' + escapeHtml(cells[0]) + '</strong><span>' + escapeHtml(cells[1]) + '</span><small>' + escapeHtml(cells[2]) + '</small></div>';
+    }).join('') + '</section>';
+  }
+
+  async function loadConfigDetail(code) {
+    var data = await api('/api/v1/config/services/' + encodeURIComponent(code), {
+      role: 'officer'
+    });
+    var detail = root.querySelector('[data-list="configDetail"]');
+    detail.innerHTML = [
+      renderConfigBlock('Ledger Steps', data.definitions, (row) => [
+        '#' + row.stepOrder,
+        row.debitSource + ' -> ' + row.creditSource,
+        row.amountSource + ' / ' + row.stage
+      ]),
+      renderConfigBlock('Fields', data.fields, (row) => [
+        row.order,
+        row.name + ' <- ' + row.source,
+        row.rule + ' / ' + row.dataType
+      ]),
+      renderConfigBlock('Validations', data.validations, (row) => [
+        row.ruleOrder,
+        row.ruleFunction,
+        row.input + ' / ' + row.errorMessage
+      ])
+    ].join('');
+    setText('[data-state="config"]', data.service.code);
+    return data;
+  }
+
   async function loadDetail(id) {
     var data = await api('/api/v1/transactions/' + encodeURIComponent(id), {
       role: 'customer'
@@ -362,6 +430,12 @@
       return;
     }
 
+    var serviceButton = event.target.closest('[data-service-code]');
+    if (serviceButton) {
+      run('loadConfigDetail', () => loadConfigDetail(serviceButton.dataset.serviceCode));
+      return;
+    }
+
     var actionButton = event.target.closest('[data-action]');
     if (!actionButton) {
       return;
@@ -388,7 +462,8 @@
       billConfirm: billConfirm,
       billVerify: billVerify,
       cashIn: cashIn,
-      loadHistory: loadHistory
+      loadHistory: loadHistory,
+      loadConfigServices: loadConfigServices
     };
 
     if (handlers[action]) {

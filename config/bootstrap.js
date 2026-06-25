@@ -48,4 +48,7 @@ module.exports.bootstrap = async function() {
   var biller = await mockBillerService.ensureDefaultData();
   sails.log.info('Mock biller ready:', biller.code);
 
+  var serviceConfigs = await configSeedService.seedDefaults();
+  sails.log.info('Service configs ready:', serviceConfigs.map((service) => service.code).join(', '));
+
 };

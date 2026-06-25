@@ -33,6 +33,7 @@
     <button class="mode-tab is-active" data-mode="customer" type="button">Customer</button>
     <button class="mode-tab" data-mode="officer" type="button">Officer</button>
     <button class="mode-tab" data-mode="transactions" type="button">Transactions</button>
+    <button class="mode-tab" data-mode="config" type="button">Config</button>
   </nav>
 
   <section class="workspace-grid">
@@ -168,6 +169,20 @@
       </div>
       <div class="history-list" data-list="history"></div>
       <pre data-output="detail"></pre>
+    </article>
+
+    <article class="panel wide-panel" data-panel="config" hidden>
+      <div class="panel-head">
+        <h2>Service Config</h2>
+        <span data-state="config">Officer only</span>
+      </div>
+      <div class="button-row">
+        <button data-action="loadConfigServices" type="button">Load Services</button>
+      </div>
+      <div class="config-layout">
+        <div class="service-list" data-list="services"></div>
+        <div class="config-detail" data-list="configDetail"></div>
+      </div>
     </article>
   </section>
 
