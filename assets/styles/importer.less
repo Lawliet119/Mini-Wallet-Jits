@@ -1,26 +1,353 @@
-/**
- * importer.less
- *
- * By default, new Sails projects are configured to compile this file
- * from LESS to CSS.  Unlike CSS files, LESS files are not compiled and
- * included automatically unless they are imported below.
- *
- * For more information see:
- *   https://sailsjs.com/anatomy/assets/styles/importer-less
- */
+:root {
+  --ink: #172033;
+  --muted: #697386;
+  --line: #d9dee8;
+  --paper: #ffffff;
+  --field: #f7f9fc;
+  --brand: #12377c;
+  --brand-2: #087b67;
+  --warn: #b25e09;
+  --danger: #b42318;
+  --bg: #eef3f8;
+  --shadow: 0 12px 28px rgba(31, 41, 55, 0.12);
+}
 
+* {
+  box-sizing: border-box;
+}
 
-// For example:
-//
-// @import 'variables/colors.less';
-// @import 'mixins/foo.less';
-// @import 'mixins/bar.less';
-// @import 'mixins/baz.less';
-//
-// @import 'mixins-and-variables.less';
-// @import 'pages/login.less';
-// @import 'pages/signup.less';
-//
-// etc.
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  color: var(--ink);
+  background: var(--bg);
+  font-family: Arial, Helvetica, sans-serif;
+  letter-spacing: 0;
+}
 
-/*! This special bang (!) comment is here to trick the `hash` Grunt task into working out-of-the-box, without any real CSS. You can delete this once you've imported ≥1 .less file as demonstrated above. */
+button,
+input,
+select {
+  font: inherit;
+}
+
+button {
+  min-height: 38px;
+  border: 1px solid var(--brand);
+  border-radius: 6px;
+  padding: 0 14px;
+  color: #fff;
+  background: var(--brand);
+  cursor: pointer;
+  font-weight: 700;
+}
+
+button:hover {
+  filter: brightness(1.05);
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+.ghost-btn {
+  color: var(--brand);
+  background: #fff;
+}
+
+.danger-btn {
+  border-color: var(--danger);
+  color: #fff;
+  background: var(--danger);
+}
+
+.wallet-shell {
+  width: min(1440px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 22px 0 32px;
+}
+
+.app-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 88px;
+}
+
+.eyebrow {
+  margin: 0 0 4px;
+  color: var(--brand-2);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+h1,
+h2 {
+  margin: 0;
+}
+
+h1 {
+  font-size: 30px;
+  line-height: 1.12;
+}
+
+h2 {
+  font-size: 16px;
+  line-height: 1.25;
+}
+
+.header-actions,
+.button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.status-band {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  margin-top: 18px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--line);
+  box-shadow: var(--shadow);
+}
+
+.metric {
+  min-width: 0;
+  padding: 16px;
+  background: var(--paper);
+}
+
+.metric span {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.metric strong {
+  display: block;
+  overflow: hidden;
+  font-size: 18px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mode-tabs {
+  display: flex;
+  gap: 8px;
+  margin-top: 22px;
+  border-bottom: 2px solid var(--line);
+}
+
+.mode-tab {
+  min-width: 132px;
+  border-color: var(--line);
+  border-bottom: 0;
+  border-radius: 8px 8px 0 0;
+  color: var(--ink);
+  background: #f8fafc;
+}
+
+.mode-tab.is-active {
+  border-color: var(--brand);
+  color: #fff;
+  background: var(--brand);
+}
+
+.workspace-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.panel,
+.event-console {
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+  box-shadow: var(--shadow);
+}
+
+.panel {
+  padding: 18px;
+}
+
+.wide-panel {
+  grid-column: 1 / -1;
+}
+
+.panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.panel-head span {
+  max-width: 48%;
+  overflow: hidden;
+  border-radius: 999px;
+  padding: 5px 9px;
+  color: var(--brand);
+  background: #eef4ff;
+  font-size: 12px;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+label {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.span-2 {
+  grid-column: span 2;
+}
+
+input,
+select {
+  width: 100%;
+  min-height: 38px;
+  border: 1px solid #c8d0dd;
+  border-radius: 6px;
+  padding: 8px 10px;
+  color: var(--ink);
+  background: var(--field);
+}
+
+input:focus,
+select:focus {
+  border-color: var(--brand-2);
+  outline: 2px solid rgba(8, 123, 103, 0.16);
+}
+
+pre {
+  min-height: 86px;
+  max-height: 260px;
+  margin: 14px 0 0;
+  overflow: auto;
+  border: 1px solid #dfe6ef;
+  border-radius: 6px;
+  padding: 12px;
+  color: #22304a;
+  background: #f8fafc;
+  font-family: Consolas, Monaco, monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.history-list {
+  display: grid;
+  gap: 10px;
+  min-height: 120px;
+}
+
+.history-item {
+  display: grid;
+  grid-template-columns: 130px 1fr auto;
+  gap: 10px;
+  align-items: center;
+  min-height: 58px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: #fbfcfe;
+}
+
+.history-item strong,
+.history-item span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.history-item small {
+  color: var(--muted);
+}
+
+.amount-in {
+  color: var(--brand-2);
+}
+
+.amount-out {
+  color: var(--danger);
+}
+
+.event-console {
+  margin-top: 16px;
+  padding: 18px;
+}
+
+.event-console pre {
+  max-height: 180px;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+@media (max-width: 1050px) {
+  .workspace-grid,
+  .status-band {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .wallet-shell {
+    width: min(100% - 20px, 1440px);
+    padding-top: 12px;
+  }
+
+  .app-header,
+  .panel-head {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .status-band,
+  .workspace-grid,
+  .form-grid,
+  .history-item {
+    grid-template-columns: 1fr;
+  }
+
+  .mode-tabs {
+    overflow-x: auto;
+  }
+
+  .mode-tab {
+    min-width: 118px;
+  }
+
+  .span-2 {
+    grid-column: auto;
+  }
+}

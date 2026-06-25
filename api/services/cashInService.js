@@ -3,8 +3,6 @@
  *
  * Hard-coded Officer cash-in flow: Bank pocket -> Customer pocket.
  */
-var ObjectId = require('mongodb').ObjectId;
-
 var SERVICE_CODE = 'CASH_IN';
 
 var makeError = function(code) {
@@ -17,38 +15,6 @@ var assertAmount = function(amount) {
   if (!Number.isSafeInteger(amount) || amount <= 0) {
     throw makeError('INVALID_AMOUNT');
   }
-};
-
-var toObjectId = function(id) {
-  return new ObjectId(String(id));
-};
-
-var normalizePocket = function(doc) {
-  return {
-    id: String(doc._id),
-    client: doc.client,
-    customer: doc.customer ? String(doc.customer) : '',
-    currency: doc.currency,
-    balance: doc.balance,
-    checksum: doc.checksum,
-    status: doc.status
-  };
-};
-
-var assertPocketChecksum = function(doc) {
-  if (!checksumService.verifyPocket(normalizePocket(doc))) {
-    throw makeError('POCKET_CHECKSUM_INVALID');
-  }
-};
-
-var signNativePocket = function(doc, nextBalance) {
-  return checksumService.signPocket(Object.assign(normalizePocket(doc), {
-    balance: nextBalance
-  }));
-};
-
-var makeTransactionCode = function() {
-  return 'TX' + Date.now() + Math.floor(Math.random() * 1000000);
 };
 
 module.exports = {
@@ -120,152 +86,40 @@ module.exports = {
     await pocketService.lockPocket(bankPocket.id);
 
     try {
-      var db = sails.getDatastore().manager;
-      var session = db.client.startSession();
-      var result;
+      var ledger = await ledgerService.execute({
+        trail: pendingTrail,
+        service: SERVICE_CODE,
+        type: 'cash_in',
+        receiver: customer.id,
+        amount: amount,
+        fee: 0,
+        totalAmount: amount,
+        currency: currency,
+        status: 'done',
+        trailStatus: 'done',
+        logStep: 'VERIFY_DONE',
+        metadata: {
+          officerId: options.officerId
+        },
+        steps: [{
+          stepOrder: 1,
+          debitPocket: bankPocket.id,
+          creditPocket: customerPocket.id,
+          amount: amount,
+          description: 'Cash-in from bank pocket'
+        }]
+      });
 
-      try {
-        await session.withTransaction(async () => {
-          var pocketCollection = db.collection(Pocket.tableName);
-          var entryCollection = db.collection(PocketEntry.tableName);
-          var transactionCollection = db.collection(Transaction.tableName);
-          var trailCollection = db.collection(TransactionTrail.tableName);
-          var now = Date.now();
-          var bankPocketObjectId = toObjectId(bankPocket.id);
-          var customerPocketObjectId = toObjectId(customerPocket.id);
-          var trailObjectId = toObjectId(pendingTrail.id);
-
-          var sourcePocket = await pocketCollection.findOne({
-            _id: bankPocketObjectId
-          }, { session: session });
-          var targetPocket = await pocketCollection.findOne({
-            _id: customerPocketObjectId
-          }, { session: session });
-
-          if (!sourcePocket || !targetPocket) {
-            throw makeError('POCKET_NOT_FOUND');
-          }
-
-          assertPocketChecksum(sourcePocket);
-          assertPocketChecksum(targetPocket);
-
-          if (sourcePocket.balance < amount) {
-            throw makeError('INSUFFICIENT_BALANCE');
-          }
-
-          var sourceNextBalance = sourcePocket.balance - amount;
-          var targetNextBalance = targetPocket.balance + amount;
-
-          var debitResult = await pocketCollection.updateOne({
-            _id: bankPocketObjectId,
-            checksum: sourcePocket.checksum,
-            balance: { $gte: amount }
-          }, {
-            $set: {
-              balance: sourceNextBalance,
-              checksum: signNativePocket(sourcePocket, sourceNextBalance),
-              updatedAt: now
-            }
-          }, { session: session });
-
-          if (debitResult.modifiedCount !== 1) {
-            throw makeError('INSUFFICIENT_BALANCE');
-          }
-
-          var creditResult = await pocketCollection.updateOne({
-            _id: customerPocketObjectId,
-            checksum: targetPocket.checksum
-          }, {
-            $set: {
-              balance: targetNextBalance,
-              checksum: signNativePocket(targetPocket, targetNextBalance),
-              updatedAt: now
-            }
-          }, { session: session });
-
-          if (creditResult.modifiedCount !== 1) {
-            throw makeError('TRANSFER_FAILED');
-          }
-
-          var entryDoc = {
-            transRefId: String(pendingTrail.id),
-            stepOrder: 1,
-            debitPocket: bankPocketObjectId,
-            creditPocket: customerPocketObjectId,
-            amount: amount,
-            currency: currency,
-            description: 'Cash-in from bank pocket',
-            status: 'settled',
-            createdAt: now,
-            updatedAt: now
-          };
-          var entryResult = await entryCollection.insertOne(entryDoc, { session: session });
-
-          var transactionDoc = {
-            code: makeTransactionCode(),
-            transRefId: String(pendingTrail.id),
-            trail: trailObjectId,
-            service: SERVICE_CODE,
-            type: 'cash_in',
-            receiver: toObjectId(customer.id),
-            amount: amount,
-            fee: 0,
-            totalAmount: amount,
-            currency: currency,
-            status: 'done',
-            metadata: {
-              pocketEntryId: String(entryResult.insertedId),
-              officerId: options.officerId
-            },
-            createdAt: now,
-            updatedAt: now
-          };
-          var transactionResult = await transactionCollection.insertOne(transactionDoc, { session: session });
-
-          await trailCollection.updateOne({
-            _id: trailObjectId,
-            status: 'pending'
-          }, {
-            $set: {
-              status: 'done',
-              updatedAt: now
-            },
-            $push: {
-              transStepLog: {
-                step: 'VERIFY_DONE',
-                detail: {
-                  transactionId: String(transactionResult.insertedId),
-                  pocketEntryId: String(entryResult.insertedId)
-                },
-                at: now
-              }
-            }
-          }, { session: session });
-
-          result = {
-            transRefId: String(pendingTrail.id),
-            transaction: {
-              id: String(transactionResult.insertedId),
-              code: transactionDoc.code,
-              status: transactionDoc.status,
-              amount: transactionDoc.amount,
-              fee: transactionDoc.fee,
-              totalAmount: transactionDoc.totalAmount,
-              currency: transactionDoc.currency
-            },
-            bankBalance: sourceNextBalance,
-            customerBalance: targetNextBalance,
-            customer: {
-              id: customer.id,
-              phone: customer.phone
-            }
-          };
-        });
-      } finally {
-        await session.endSession();
-      }
-
-      return result;
+      return {
+        transRefId: String(pendingTrail.id),
+        transaction: ledger.transaction,
+        bankBalance: ledger.pocketBalances[String(bankPocket.id)],
+        customerBalance: ledger.pocketBalances[String(customerPocket.id)],
+        customer: {
+          id: customer.id,
+          phone: customer.phone
+        }
+      };
     } catch (err) {
       await trailService.markFailed(pendingTrail.id, err.code || 'TRANSFER_FAILED', err.message, {
         stage: 'CASH_IN'
