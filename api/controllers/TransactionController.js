@@ -1,7 +1,7 @@
 /**
  * TransactionController.js
  *
- * Hard-coded P2P transaction endpoints.
+ * Generic transaction endpoints.
  */
 var codeMap = function(err) {
   return respCode[err.code] || respCode.SERVER_ERROR;
@@ -53,12 +53,14 @@ var toPublicTransaction = function(transaction, currentCustomerId) {
 };
 
 module.exports = {
-  requestBillPayment: async function(req, res) {
+  request: async function(req, res) {
     try {
-      var preview = await billPaymentService.request({
-        customerId: req.info.user.id,
-        billerId: req.body.billerId,
-        billCode: req.body.billCode
+      var preview = await transactionEngineService.request({
+        actor: {
+          role: req.info.role,
+          user: req.info.user
+        },
+        parameters: req.body
       });
 
       return res.ok(preview);
@@ -68,10 +70,13 @@ module.exports = {
     }
   },
 
-  confirmBillPayment: async function(req, res) {
+  confirm: async function(req, res) {
     try {
-      var result = await billPaymentService.confirm({
-        customerId: req.info.user.id,
+      var result = await transactionEngineService.confirm({
+        actor: {
+          role: req.info.role,
+          user: req.info.user
+        },
         transRefId: req.body.transRefId
       });
 
@@ -82,71 +87,13 @@ module.exports = {
     }
   },
 
-  verifyBillPayment: async function(req, res) {
+  verify: async function(req, res) {
     try {
-      var result = await billPaymentService.verify({
-        customerId: req.info.user.id,
-        transRefId: req.body.transRefId,
-        pin: req.body.pin
-      });
-
-      return res.ok(result);
-    } catch (err) {
-      sails.log.warn(err);
-      return res.error(codeMap(err));
-    }
-  },
-
-  cashIn: async function(req, res) {
-    try {
-      var result = await cashInService.execute({
-        officerId: req.info.user.id,
-        customerPhone: req.body.customerPhone,
-        amount: req.body.amount,
-        currency: req.body.currency || 'VND'
-      });
-
-      return res.ok(result);
-    } catch (err) {
-      sails.log.warn(err);
-      return res.error(codeMap(err));
-    }
-  },
-
-  requestP2P: async function(req, res) {
-    try {
-      var preview = await p2pService.request({
-        senderId: req.info.user.id,
-        receiverPhone: req.body.receiverPhone,
-        amount: req.body.amount,
-        message: req.body.message
-      });
-
-      return res.ok(preview);
-    } catch (err) {
-      sails.log.warn(err);
-      return res.error(codeMap(err));
-    }
-  },
-
-  confirmP2P: async function(req, res) {
-    try {
-      var result = await p2pService.confirm({
-        customerId: req.info.user.id,
-        transRefId: req.body.transRefId
-      });
-
-      return res.ok(result);
-    } catch (err) {
-      sails.log.warn(err);
-      return res.error(codeMap(err));
-    }
-  },
-
-  verifyP2P: async function(req, res) {
-    try {
-      var result = await p2pService.verify({
-        customerId: req.info.user.id,
+      var result = await transactionEngineService.verify({
+        actor: {
+          role: req.info.role,
+          user: req.info.user
+        },
         transRefId: req.body.transRefId,
         pin: req.body.pin
       });

@@ -295,10 +295,11 @@ function App() {
   }
 
   async function requestP2P() {
-    const data = await api('/api/v1/transactions/p2p/request', {
+    const data = await api('/api/v1/transactions/request', {
       method: 'POST',
       role: 'customer',
       body: {
+        serviceCode: 'P2P_TRANSFER',
         receiverPhone: form.p2pReceiverPhone,
         amount: Number(form.p2pAmount),
         message: form.p2pMessage
@@ -310,7 +311,7 @@ function App() {
   }
 
   async function confirmP2P() {
-    const data = await api('/api/v1/transactions/p2p/confirm', {
+    const data = await api('/api/v1/transactions/confirm', {
       method: 'POST',
       role: 'customer',
       body: { transRefId: p2pTransRefId }
@@ -320,7 +321,7 @@ function App() {
   }
 
   async function verifyP2P() {
-    const data = await api('/api/v1/transactions/p2p/verify', {
+    const data = await api('/api/v1/transactions/verify', {
       method: 'POST',
       role: 'customer',
       body: {
@@ -334,10 +335,11 @@ function App() {
   }
 
   async function requestBill() {
-    const data = await api('/api/v1/transactions/bills/request', {
+    const data = await api('/api/v1/transactions/request', {
       method: 'POST',
       role: 'customer',
       body: {
+        serviceCode: 'BILL_PAYMENT',
         billerId: form.billerId,
         billCode: form.billCode
       }
@@ -348,7 +350,7 @@ function App() {
   }
 
   async function confirmBill() {
-    const data = await api('/api/v1/transactions/bills/confirm', {
+    const data = await api('/api/v1/transactions/confirm', {
       method: 'POST',
       role: 'customer',
       body: { transRefId: billTransRefId }
@@ -358,7 +360,7 @@ function App() {
   }
 
   async function verifyBill() {
-    const data = await api('/api/v1/transactions/bills/verify', {
+    const data = await api('/api/v1/transactions/verify', {
       method: 'POST',
       role: 'customer',
       body: {
@@ -372,13 +374,21 @@ function App() {
   }
 
   async function cashIn() {
-    const data = await api('/api/v1/admin/transactions/cash-in', {
+    const requestData = await api('/api/v1/transactions/request', {
       method: 'POST',
       role: 'officer',
       body: {
+        serviceCode: 'CASH_IN',
         customerPhone: form.cashInCustomerPhone,
         amount: Number(form.cashInAmount),
         currency: 'VND'
+      }
+    });
+    const data = await api('/api/v1/transactions/verify', {
+      method: 'POST',
+      role: 'officer',
+      body: {
+        transRefId: requestData.transRefId
       }
     });
     setOutputs((current) => ({ ...current, cashIn: data }));

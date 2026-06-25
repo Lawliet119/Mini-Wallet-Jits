@@ -250,10 +250,11 @@
   }
 
   async function p2pRequest() {
-    var data = await api('/api/v1/transactions/p2p/request', {
+    var data = await api('/api/v1/transactions/request', {
       method: 'POST',
       role: 'customer',
       body: {
+        serviceCode: 'P2P_TRANSFER',
         receiverPhone: value('p2pReceiverPhone'),
         amount: numberValue('p2pAmount'),
         message: value('p2pMessage')
@@ -266,7 +267,7 @@
   }
 
   async function p2pConfirm() {
-    var data = await api('/api/v1/transactions/p2p/confirm', {
+    var data = await api('/api/v1/transactions/confirm', {
       method: 'POST',
       role: 'customer',
       body: {
@@ -278,7 +279,7 @@
   }
 
   async function p2pVerify() {
-    var data = await api('/api/v1/transactions/p2p/verify', {
+    var data = await api('/api/v1/transactions/verify', {
       method: 'POST',
       role: 'customer',
       body: {
@@ -292,10 +293,11 @@
   }
 
   async function billRequest() {
-    var data = await api('/api/v1/transactions/bills/request', {
+    var data = await api('/api/v1/transactions/request', {
       method: 'POST',
       role: 'customer',
       body: {
+        serviceCode: 'BILL_PAYMENT',
         billerId: value('billerId'),
         billCode: value('billCode')
       }
@@ -307,7 +309,7 @@
   }
 
   async function billConfirm() {
-    var data = await api('/api/v1/transactions/bills/confirm', {
+    var data = await api('/api/v1/transactions/confirm', {
       method: 'POST',
       role: 'customer',
       body: {
@@ -319,7 +321,7 @@
   }
 
   async function billVerify() {
-    var data = await api('/api/v1/transactions/bills/verify', {
+    var data = await api('/api/v1/transactions/verify', {
       method: 'POST',
       role: 'customer',
       body: {
@@ -333,13 +335,21 @@
   }
 
   async function cashIn() {
-    var data = await api('/api/v1/admin/transactions/cash-in', {
+    var requestData = await api('/api/v1/transactions/request', {
       method: 'POST',
       role: 'officer',
       body: {
+        serviceCode: 'CASH_IN',
         customerPhone: value('cashInCustomerPhone'),
         amount: numberValue('cashInAmount'),
         currency: 'VND'
+      }
+    });
+    var data = await api('/api/v1/transactions/verify', {
+      method: 'POST',
+      role: 'officer',
+      body: {
+        transRefId: requestData.transRefId
       }
     });
     print('cashIn', data);

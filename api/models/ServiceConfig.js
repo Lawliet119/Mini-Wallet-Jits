@@ -23,7 +23,6 @@ module.exports = {
 
     type: {
       type: 'string',
-      isIn: ['p2p', 'cash_in', 'bill_payment'],
       required: true
     },
 

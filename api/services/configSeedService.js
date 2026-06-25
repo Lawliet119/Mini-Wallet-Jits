@@ -1,7 +1,7 @@
 /**
  * configSeedService.js
  *
- * Seeds readable transaction configuration for the hard-coded flows.
+ * Seeds readable transaction configuration for the generic engine.
  */
 var services = [{
   code: 'P2P_TRANSFER',
@@ -11,6 +11,7 @@ var services = [{
   description: 'Customer wallet sends e-money to another customer wallet.',
   metadata: {
     feeAmount: 0,
+    actorRole: 'customer',
     flow: ['request', 'confirm', 'verify']
   },
   definitions: [{
@@ -49,6 +50,7 @@ var services = [{
   description: 'Officer confirms real-money receipt and moves bank e-money to customer.',
   metadata: {
     feeAmount: 0,
+    actorRole: 'officer',
     flow: ['request', 'verify']
   },
   definitions: [{
@@ -81,10 +83,11 @@ var services = [{
   name: 'Bill Payment',
   type: 'bill_payment',
   authMethod: 'PIN',
-  description: 'Customer pays a mock biller after inquiry, then external payment is called after collection.',
+  description: 'Customer pays a mock biller after inquiry. External payment succeeds before ledger collection is committed.',
   metadata: {
     feeAmount: 1000,
-    flow: ['inquiry', 'confirm', 'collection', 'external_payment']
+    actorRole: 'customer',
+    flow: ['inquiry', 'confirm', 'external_payment', 'collection']
   },
   definitions: [{
     stepOrder: 1,

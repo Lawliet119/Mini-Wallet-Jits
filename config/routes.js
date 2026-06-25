@@ -35,13 +35,9 @@ module.exports.routes = {
   'GET /api/v1/transactions/history': 'TransactionController.history',
   'GET /api/v1/transactions/trails/:transRefId': 'TransactionController.trailDetail',
   'GET /api/v1/transactions/:id': 'TransactionController.detail',
-  'POST /api/v1/admin/transactions/cash-in': 'TransactionController.cashIn',
-  'POST /api/v1/transactions/bills/request': 'TransactionController.requestBillPayment',
-  'POST /api/v1/transactions/bills/confirm': 'TransactionController.confirmBillPayment',
-  'POST /api/v1/transactions/bills/verify': 'TransactionController.verifyBillPayment',
-  'POST /api/v1/transactions/p2p/request': 'TransactionController.requestP2P',
-  'POST /api/v1/transactions/p2p/confirm': 'TransactionController.confirmP2P',
-  'POST /api/v1/transactions/p2p/verify': 'TransactionController.verifyP2P',
+  'POST /api/v1/transactions/request': 'TransactionController.request',
+  'POST /api/v1/transactions/confirm': 'TransactionController.confirm',
+  'POST /api/v1/transactions/verify': 'TransactionController.verify',
 
 
   /***************************************************************************

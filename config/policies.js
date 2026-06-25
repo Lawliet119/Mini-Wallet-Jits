@@ -26,13 +26,9 @@ module.exports.policies = {
   },
 
   TransactionController: {
-    requestBillPayment: ['bearer', 'isCustomer'],
-    confirmBillPayment: ['bearer', 'isCustomer'],
-    verifyBillPayment: ['bearer', 'isCustomer'],
-    cashIn: ['bearer', 'isOfficer'],
-    requestP2P: ['bearer', 'isCustomer'],
-    confirmP2P: ['bearer', 'isCustomer'],
-    verifyP2P: ['bearer', 'isCustomer'],
+    request: ['bearer'],
+    confirm: ['bearer'],
+    verify: ['bearer'],
     history: ['bearer', 'isCustomer'],
     detail: ['bearer', 'isCustomer'],
     trailDetail: ['bearer', 'isCustomer']

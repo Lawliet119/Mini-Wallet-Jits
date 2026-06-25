@@ -28,6 +28,7 @@ module.exports = {
       type: options.type || 'normal',
       sender: options.sender || null,
       receiver: options.receiver || null,
+      biller: options.biller || null,
       inputMessage: options.inputMessage || {},
       outputMessage: options.outputMessage || {},
       transStepLog: appendLog([], 'REQUEST_INIT', options.log)
