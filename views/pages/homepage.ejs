@@ -1,7 +1,7 @@
 <main class="wallet-shell" data-app="mini-wallet">
   <header class="app-header">
     <div>
-      <p class="eyebrow">Mini Wallet Console</p>
+      <p class="eyebrow">Digital Wallet</p>
       <h1>JITS Mini Wallet</h1>
     </div>
     <div class="header-actions">
@@ -12,11 +12,31 @@
 
   <section class="auth-gate" data-auth-gate>
     <div class="auth-copy">
-      <p class="eyebrow">Access</p>
-      <h2>Login or register to start testing wallet flows.</h2>
-      <p>Customer can transfer and pay bills. Officer can trigger cash-in and inspect service config.</p>
+      <p class="eyebrow">Your Wallet</p>
+      <h2>Digital Wallet</h2>
+      <p>Transfer money, cash-in through an officer, and pay bills from one compact wallet workspace.</p>
+      <div class="hero-actions">
+        <button data-action="focusCustomerAuth" type="button">Get Started</button>
+        <button class="ghost-btn" data-action="focusOfficerAuth" type="button">Officer Access</button>
+      </div>
+      <div class="wallet-art" aria-hidden="true">
+        <div class="art-blob"></div>
+        <div class="art-wallet">
+          <div class="art-pocket"></div>
+          <div class="art-card"></div>
+        </div>
+        <div class="art-coin coin-one">$</div>
+        <div class="art-coin coin-two">$</div>
+        <div class="art-stack"></div>
+        <div class="art-gear gear-one"></div>
+        <div class="art-gear gear-two"></div>
+      </div>
     </div>
     <div class="auth-panel">
+      <div class="auth-panel-head">
+        <p class="eyebrow">Sign in</p>
+        <h2>Access Console</h2>
+      </div>
       <nav class="auth-tabs" aria-label="Access roles">
         <button class="auth-tab is-active" data-auth-role="customer" type="button">Customer</button>
         <button class="auth-tab" data-auth-role="officer" type="button">Officer</button>

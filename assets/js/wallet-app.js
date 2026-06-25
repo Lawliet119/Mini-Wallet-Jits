@@ -492,6 +492,14 @@
       clearSession: async function() {
         clearSession();
       },
+      focusCustomerAuth: async function() {
+        state.authRole = 'customer';
+        renderSession();
+      },
+      focusOfficerAuth: async function() {
+        state.authRole = 'officer';
+        renderSession();
+      },
       customerLogin: () => customerLogin(false),
       customerRegister: () => customerLogin(true),
       officerLogin: () => officerLogin(false),
