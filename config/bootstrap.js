@@ -10,21 +10,39 @@
  */
 
 module.exports.bootstrap = async function() {
+  if (!sails.config.custom.bootstrapSeed) {
+    return;
+  }
 
-  // By convention, this is a good place to set up fake data during development.
-  //
-  // For example:
-  // ```
-  // // Set up fake development data (or if we already have some, avast)
-  // if (await User.count() > 0) {
-  //   return;
-  // }
-  //
-  // await User.createEach([
-  //   { emailAddress: 'ry@example.com', fullName: 'Ryan Dahl', },
-  //   { emailAddress: 'rachael@example.com', fullName: 'Rachael Shaw', },
-  //   // etc.
-  // ]);
-  // ```
+  var currency = sails.config.custom.seedCurrency;
+  var officerPhone = sails.config.custom.seedOfficerPhone;
+
+  var officer = await Officer.findOne({ phone: officerPhone });
+  if (!officer) {
+    officer = await Officer.create({
+      phone: officerPhone,
+      name: 'Default Officer',
+      pinHash: await pinService.hash(sails.config.custom.seedOfficerPin),
+      status: 'active'
+    }).fetch();
+
+    sails.log.info('Seeded default officer:', officer.phone);
+  }
+
+  var bankPocket = await pocketService.createInternalPocket('bank', {
+    currency: currency,
+    balance: sails.config.custom.seedBankBalance
+  });
+  var systemPocket = await pocketService.createInternalPocket('system', {
+    currency: currency,
+    balance: 0
+  });
+
+  sails.log.info('Seed ready:', {
+    officerPhone: officer.phone,
+    bankPocket: bankPocket.id,
+    systemPocket: systemPocket.id,
+    currency: currency
+  });
 
 };
