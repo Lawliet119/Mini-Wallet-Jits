@@ -6,6 +6,7 @@
 
   var state = {
     mode: 'customer',
+    authRole: 'customer',
     customerToken: localStorage.getItem('miniWallet.customerToken') || '',
     officerToken: localStorage.getItem('miniWallet.officerToken') || '',
     customer: readJson('miniWallet.customer'),
@@ -13,6 +14,10 @@
     p2pTransRefId: '',
     billTransRefId: ''
   };
+  if (!state.customerToken && state.officerToken) {
+    state.mode = 'officer';
+    state.authRole = 'officer';
+  }
 
   function readJson(key) {
     try {
@@ -27,7 +32,19 @@
   }
 
   function query(name) {
-    return root.querySelector('[data-input="' + name + '"]');
+    var inputs = Array.prototype.slice.call(root.querySelectorAll('[data-input="' + name + '"]'));
+    return inputs.find((input) => !hasHiddenParent(input)) || inputs[0] || null;
+  }
+
+  function hasHiddenParent(element) {
+    var current = element;
+    while (current && current !== root) {
+      if (current.hidden) {
+        return true;
+      }
+      current = current.parentElement;
+    }
+    return false;
   }
 
   function field(name) {
@@ -123,6 +140,20 @@
   }
 
   function renderSession() {
+    var hasSession = Boolean(state.customerToken || state.officerToken);
+    var authGate = root.querySelector('[data-auth-gate]');
+    if (authGate) {
+      authGate.hidden = hasSession;
+    }
+    root.querySelectorAll('[data-authenticated-only]').forEach((surface) => {
+      surface.hidden = !hasSession;
+    });
+    root.querySelectorAll('[data-auth-role]').forEach((tab) => {
+      tab.classList.toggle('is-active', tab.dataset.authRole === state.authRole);
+    });
+    root.querySelectorAll('[data-auth-form]').forEach((form) => {
+      form.hidden = form.dataset.authForm !== state.authRole;
+    });
     root.querySelectorAll('.mode-tab').forEach((tab) => {
       tab.classList.toggle('is-active', tab.dataset.mode === state.mode);
     });
@@ -176,6 +207,8 @@
     });
     state.customerToken = data.accessToken;
     state.customer = data.customer;
+    state.mode = 'customer';
+    state.authRole = 'customer';
     localStorage.setItem('miniWallet.customerToken', state.customerToken);
     writeJson('miniWallet.customer', state.customer);
     await refreshBalance();
@@ -194,6 +227,8 @@
     });
     state.officerToken = data.accessToken;
     state.officer = data.officer;
+    state.mode = 'officer';
+    state.authRole = 'officer';
     localStorage.setItem('miniWallet.officerToken', state.officerToken);
     writeJson('miniWallet.officer', state.officer);
     return data;
@@ -417,6 +452,13 @@
   }
 
   root.addEventListener('click', (event) => {
+    var authRoleButton = event.target.closest('[data-auth-role]');
+    if (authRoleButton) {
+      state.authRole = authRoleButton.dataset.authRole;
+      renderSession();
+      return;
+    }
+
     var modeButton = event.target.closest('[data-mode]');
     if (modeButton) {
       state.mode = modeButton.dataset.mode;

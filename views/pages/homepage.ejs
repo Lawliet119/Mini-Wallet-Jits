@@ -10,7 +10,63 @@
     </div>
   </header>
 
-  <section class="status-band">
+  <section class="auth-gate" data-auth-gate>
+    <div class="auth-copy">
+      <p class="eyebrow">Access</p>
+      <h2>Login or register to start testing wallet flows.</h2>
+      <p>Customer can transfer and pay bills. Officer can trigger cash-in and inspect service config.</p>
+    </div>
+    <div class="auth-panel">
+      <nav class="auth-tabs" aria-label="Access roles">
+        <button class="auth-tab is-active" data-auth-role="customer" type="button">Customer</button>
+        <button class="auth-tab" data-auth-role="officer" type="button">Officer</button>
+      </nav>
+
+      <div data-auth-form="customer">
+        <div class="form-grid">
+          <label>
+            Phone
+            <input data-input="customerPhone" value="0703900625" autocomplete="username">
+          </label>
+          <label>
+            PIN
+            <input data-input="customerPin" value="123456" type="password" autocomplete="current-password">
+          </label>
+          <label>
+            Currency
+            <input data-input="customerCurrency" value="VND">
+          </label>
+        </div>
+        <div class="button-row">
+          <button data-action="customerLogin" type="button">Login</button>
+          <button class="ghost-btn" data-action="customerRegister" type="button">Register</button>
+        </div>
+      </div>
+
+      <div data-auth-form="officer" hidden>
+        <div class="form-grid">
+          <label>
+            Phone
+            <input data-input="officerPhone" value="0900000000" autocomplete="username">
+          </label>
+          <label>
+            PIN
+            <input data-input="officerPin" value="123456" type="password" autocomplete="current-password">
+          </label>
+          <label>
+            Name
+            <input data-input="officerName" value="Operator">
+          </label>
+        </div>
+        <div class="button-row">
+          <button data-action="officerLogin" type="button">Login</button>
+          <button class="ghost-btn" data-action="officerRegister" type="button">Register</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="status-band" data-authenticated-only hidden>
     <div class="metric">
       <span>Role</span>
       <strong data-field="role">Guest</strong>
@@ -29,14 +85,14 @@
     </div>
   </section>
 
-  <nav class="mode-tabs" aria-label="Mini wallet modes">
+  <nav class="mode-tabs" aria-label="Mini wallet modes" data-authenticated-only hidden>
     <button class="mode-tab is-active" data-mode="customer" type="button">Customer</button>
     <button class="mode-tab" data-mode="officer" type="button">Officer</button>
     <button class="mode-tab" data-mode="transactions" type="button">Transactions</button>
     <button class="mode-tab" data-mode="config" type="button">Config</button>
   </nav>
 
-  <section class="workspace-grid">
+  <section class="workspace-grid" data-authenticated-only hidden>
     <article class="panel" data-panel="customer">
       <div class="panel-head">
         <h2>Customer Access</h2>
@@ -186,7 +242,7 @@
     </article>
   </section>
 
-  <aside class="event-console">
+  <aside class="event-console" data-authenticated-only hidden>
     <div class="panel-head">
       <h2>Run Log</h2>
       <span data-state="last">Idle</span>
