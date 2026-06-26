@@ -14,13 +14,37 @@ module.exports = {
     return jwt.sign({
       sub: user.id,
       role: role,
-      phone: user.phone
+      phone: user.phone,
+      type: 'access'
     }, getSecret(), {
-      expiresIn: sails.config.custom.jwtExpiresIn
+      expiresIn: sails.config.custom.jwtExpiresIn || '15m'
     });
   },
 
   verify: function(token) {
-    return jwt.verify(token, getSecret());
+    var payload = jwt.verify(token, getSecret());
+    if (payload.type === 'refresh') {
+      throw new Error('Refresh tokens cannot be used as access tokens');
+    }
+    return payload;
+  },
+
+  issueRefresh: function(user, role) {
+    return jwt.sign({
+      sub: user.id,
+      role: role,
+      phone: user.phone,
+      type: 'refresh'
+    }, getSecret(), {
+      expiresIn: '7d'
+    });
+  },
+
+  verifyRefresh: function(token) {
+    var payload = jwt.verify(token, getSecret());
+    if (payload.type !== 'refresh') {
+      throw new Error('Access tokens cannot be used as refresh tokens');
+    }
+    return payload;
   }
 };

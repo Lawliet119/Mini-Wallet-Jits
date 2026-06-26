@@ -28,6 +28,18 @@ var publicOfficer = function(officer) {
   };
 };
 
+var setRefreshTokenCookie = function(res, token) {
+  res.cookie('refreshToken', token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+  });
+};
+
+var clearRefreshTokenCookie = function(res) {
+  res.clearCookie('refreshToken');
+};
+
 module.exports = {
   login: async function(req, res) {
     try {
@@ -46,8 +58,12 @@ module.exports = {
           return res.error(respCode.ACCOUNT_LOCKED);
         }
 
+        var accessToken = tokenService.issue(customer, 'customer');
+        var refreshToken = tokenService.issueRefresh(customer, 'customer');
+        setRefreshTokenCookie(res, refreshToken);
+
         return res.ok({
-          accessToken: tokenService.issue(customer, 'customer'),
+          accessToken: accessToken,
           tokenType: 'Bearer',
           role: 'customer',
           user: publicCustomer(customer),
@@ -61,8 +77,12 @@ module.exports = {
           return res.error(respCode.ACCOUNT_LOCKED);
         }
 
+        var accessToken = tokenService.issue(officer, 'officer');
+        var refreshToken = tokenService.issueRefresh(officer, 'officer');
+        setRefreshTokenCookie(res, refreshToken);
+
         return res.ok({
-          accessToken: tokenService.issue(officer, 'officer'),
+          accessToken: accessToken,
           tokenType: 'Bearer',
           role: 'officer',
           user: publicOfficer(officer),
@@ -99,6 +119,8 @@ module.exports = {
       var pocket = await pocketService.createCustomerPocket(customer.id, req.body.currency);
 
       var accessToken = tokenService.issue(customer, 'customer');
+      var refreshToken = tokenService.issueRefresh(customer, 'customer');
+      setRefreshTokenCookie(res, refreshToken);
 
       return res.ok({
         accessToken: accessToken,
@@ -134,8 +156,12 @@ module.exports = {
         return res.error(respCode.ACCOUNT_LOCKED);
       }
 
+      var accessToken = tokenService.issue(customer, 'customer');
+      var refreshToken = tokenService.issueRefresh(customer, 'customer');
+      setRefreshTokenCookie(res, refreshToken);
+
       return res.ok({
-        accessToken: tokenService.issue(customer, 'customer'),
+        accessToken: accessToken,
         tokenType: 'Bearer',
         customer: publicCustomer(customer)
       });
@@ -165,8 +191,12 @@ module.exports = {
         pinHash: await pinService.hash(pin)
       }).fetch();
 
+      var accessToken = tokenService.issue(officer, 'officer');
+      var refreshToken = tokenService.issueRefresh(officer, 'officer');
+      setRefreshTokenCookie(res, refreshToken);
+
       return res.ok({
-        accessToken: tokenService.issue(officer, 'officer'),
+        accessToken: accessToken,
         tokenType: 'Bearer',
         officer: publicOfficer(officer)
       });
@@ -194,8 +224,12 @@ module.exports = {
         return res.error(respCode.ACCOUNT_LOCKED);
       }
 
+      var accessToken = tokenService.issue(officer, 'officer');
+      var refreshToken = tokenService.issueRefresh(officer, 'officer');
+      setRefreshTokenCookie(res, refreshToken);
+
       return res.ok({
-        accessToken: tokenService.issue(officer, 'officer'),
+        accessToken: accessToken,
         tokenType: 'Bearer',
         officer: publicOfficer(officer)
       });
@@ -210,5 +244,41 @@ module.exports = {
       user: req.info.user,
       role: req.info.role
     });
+  },
+
+  refresh: async function(req, res) {
+    try {
+      var token = req.cookies.refreshToken;
+      if (!token) {
+        return res.error(respCode.UNAUTHORIZED);
+      }
+
+      var payload = tokenService.verifyRefresh(token);
+      var Model = payload.role === 'officer' ? Officer : Customer;
+      var user = await Model.findOne({ id: payload.sub });
+
+      if (!user || user.status !== 'active') {
+        clearRefreshTokenCookie(res);
+        return res.error(respCode.UNAUTHORIZED);
+      }
+
+      var accessToken = tokenService.issue(user, payload.role);
+      var newRefreshToken = tokenService.issueRefresh(user, payload.role);
+      setRefreshTokenCookie(res, newRefreshToken);
+
+      return res.ok({
+        accessToken: accessToken,
+        tokenType: 'Bearer',
+        role: payload.role
+      });
+    } catch (err) {
+      clearRefreshTokenCookie(res);
+      return res.error(respCode.UNAUTHORIZED);
+    }
+  },
+
+  logout: async function(req, res) {
+    clearRefreshTokenCookie(res);
+    return res.ok({ message: 'Logged out successfully' });
   }
 };

@@ -24,6 +24,8 @@ module.exports.routes = {
   'GET /js/wallet-app.js': 'AssetController.walletApp',
 
   'POST /api/v1/access/login': 'AccessController.login',
+  'POST /api/v1/access/refresh': 'AccessController.refresh',
+  'POST /api/v1/access/logout': 'AccessController.logout',
   'POST /api/v1/customers/register': 'AccessController.registerCustomer',
   'POST /api/v1/customers/login': 'AccessController.loginCustomer',
   'POST /api/v1/officers/register': 'AccessController.registerOfficer',

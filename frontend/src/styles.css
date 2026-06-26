@@ -612,6 +612,12 @@ h3 {
   color: #454553;
   background: #f3f3ff;
   text-align: center;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease-in-out;
+}
+
+.action-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
 }
 
 .action-card span {
@@ -622,6 +628,11 @@ h3 {
   color: var(--purple);
   font-size: 28px;
   font-weight: 900;
+  transition: transform 0.2s ease-in-out;
+}
+
+.action-card:hover span {
+  transform: scale(1.15);
 }
 
 .action-card strong {

@@ -15,7 +15,6 @@ const initialForm = {
   p2pMessage: '',
   billerId: '',
   billCode: '',
-  topUpAmount: '',
   cashInCustomerPhone: '',
   cashInAmount: ''
 };
@@ -33,18 +32,36 @@ const modeItemsByRole = {
 
 const quickActionsByRole = {
   customer: [
-    { id: 'customer', label: 'Transfer', helper: 'P2P move', mark: '<>', tone: 'violet' },
-    { id: 'customer-topup', label: 'Top up', helper: 'Bank to wallet', mark: '+', tone: 'green' },
-    { id: 'customer-bill', label: 'Bills', helper: 'Inquiry and pay', mark: 'B', tone: 'blue' },
-    { id: 'transactions', label: 'History', helper: 'Audit trail', mark: 'H', tone: 'amber' },
-    { id: 'refresh', label: 'Refresh', helper: 'Balance sync', mark: 'R', tone: 'lilac' }
+    { id: 'customer', label: 'Transfer', helper: 'P2P move', icon: 'transfer', tone: 'violet' },
+    { id: 'customer-bill', label: 'Bills', helper: 'Inquiry and pay', icon: 'bill', tone: 'blue' },
+    { id: 'transactions', label: 'History', helper: 'Audit trail', icon: 'history', tone: 'amber' },
+    { id: 'refresh', label: 'Refresh', helper: 'Balance sync', icon: 'refresh', tone: 'lilac' }
   ],
   officer: [
-    { id: 'officer', label: 'Cash-in', helper: 'Desk operation', mark: '+', tone: 'green' },
-    { id: 'config', label: 'Config', helper: 'Service rules', mark: '#', tone: 'peach' },
-    { id: 'refresh', label: 'Refresh', helper: 'Session sync', mark: 'R', tone: 'lilac' }
+    { id: 'officer', label: 'Cash-in', helper: 'Desk operation', icon: 'topup', tone: 'green' },
+    { id: 'config', label: 'Config', helper: 'Service rules', icon: 'config', tone: 'peach' },
+    { id: 'refresh', label: 'Refresh', helper: 'Session sync', icon: 'refresh', tone: 'lilac' }
   ]
 };
+
+function QuickIcon({ name }) {
+  switch (name) {
+    case 'transfer':
+      return <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3l4 4-4 4"></path><path d="M3 17l4-4 4 4"></path><path d="M7 13h14"></path><path d="M21 7H3"></path></svg>;
+    case 'topup':
+      return <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v20"></path><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>;
+    case 'bill':
+      return <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>;
+    case 'history':
+      return <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>;
+    case 'refresh':
+      return <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 2v6h-6"></path><path d="M3 12a9 9 0 0 1 15-6.7L21 8"></path><path d="M3 22v-6h6"></path><path d="M21 12a9 9 0 0 1-15 6.7L3 16"></path></svg>;
+    case 'config':
+      return <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>;
+    default:
+      return null;
+  }
+}
 
 function readStoredJson(key) {
   try {
@@ -167,7 +184,7 @@ function SideRail({ mode, setMode, clearSession, items }) {
       <nav className="rail-nav" aria-label="Main navigation">
         {items.map((item) => (
           <button
-            className={`rail-btn ${mode === item.id ? 'is-active' : ''}`}
+            className={`rail-btn ${mode.startsWith(item.id) ? 'is-active' : ''}`}
             key={item.id}
             type="button"
             title={item.label}
@@ -254,7 +271,7 @@ function ActionGrid({ mode, actions, runQuickAction }) {
           key={action.id}
           onClick={() => runQuickAction(action.id)}
         >
-          <span>{action.mark}</span>
+          <span className="action-icon-wrapper"><QuickIcon name={action.icon} /></span>
           <strong>{action.label}</strong>
           <small>{action.helper}</small>
         </button>
@@ -380,15 +397,17 @@ function App() {
   const [logs, setLogs] = useState([]);
   const [busy, setBusy] = useState('');
   const [p2pTransRefId, setP2pTransRefId] = useState('');
+  const [p2pStep, setP2pStep] = useState('request');
   const [billTransRefId, setBillTransRefId] = useState('');
-  const [topUpTransRefId, setTopUpTransRefId] = useState('');
-  const [showWorkspace, setShowWorkspace] = useState(false);
+  const [billStep, setBillStep] = useState('request');
+  const [expandedTxId, setExpandedTxId] = useState(null);
+  const [showWorkspace, setShowWorkspace] = useState(() => Boolean(localStorage.getItem('miniWallet.customerToken') || localStorage.getItem('miniWallet.officerToken')));
 
   const hasSession = showWorkspace && Boolean(customerToken || officerToken);
   const activeRole = officerToken ? 'officer' : 'customer';
   const navigationItems = modeItemsByRole[activeRole];
   const quickActions = quickActionsByRole[activeRole];
-  const modeLabel = navigationItems.find((item) => item.id === mode)?.label || 'Payments';
+  const modeLabel = quickActions.find((item) => item.id === mode)?.label || navigationItems.find((item) => item.id === mode)?.label || 'Payments';
   const authMessage = useMemo(() => logs[0]?.message || '', [logs]);
 
   function updateForm(name, value) {
@@ -408,14 +427,52 @@ function App() {
       headers.Authorization = `Bearer ${token}`;
     }
 
-    const response = await fetch(`${API_BASE}${path}`, {
+    let response = await fetch(`${API_BASE}${path}`, {
       method: options.method || 'GET',
       headers,
+      credentials: 'include',
       body: options.body ? JSON.stringify(options.body) : undefined
     });
-    const data = await response.json();
+    let data = await response.json();
 
-    if (data.err !== SUCCESS_CODE) {
+    if (data.err === 401 && path !== '/api/v1/access/refresh' && path !== '/api/v1/access/logout') {
+      try {
+        const refreshRes = await fetch(`${API_BASE}/api/v1/access/refresh`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include'
+        });
+        const refreshData = await refreshRes.json();
+        
+        if (refreshData.err === SUCCESS_CODE) {
+          const newToken = refreshData.accessToken;
+          if (refreshData.role === 'officer') {
+            setOfficerToken(newToken);
+            localStorage.setItem('miniWallet.officerToken', newToken);
+          } else {
+            setCustomerToken(newToken);
+            localStorage.setItem('miniWallet.customerToken', newToken);
+          }
+          
+          headers.Authorization = `Bearer ${newToken}`;
+          response = await fetch(`${API_BASE}${path}`, {
+            method: options.method || 'GET',
+            headers,
+            credentials: 'include',
+            body: options.body ? JSON.stringify(options.body) : undefined
+          });
+          data = await response.json();
+        } else {
+          clearSession();
+          throw new Error('Session expired');
+        }
+      } catch (e) {
+        clearSession();
+        throw new Error('Session expired');
+      }
+    }
+
+    if (data.err && data.err !== SUCCESS_CODE) {
       const err = new Error(data.message || 'Request failed');
       err.payload = data;
       throw err;
@@ -523,46 +580,8 @@ function App() {
     return data;
   }
 
-  async function requestTopUp() {
-    const data = await api('/api/v1/transactions/request', {
-      method: 'POST',
-      role: 'customer',
-      body: {
-        serviceCode: 'BANK_TOPUP',
-        amount: Number(form.topUpAmount),
-        currency: 'VND'
-      }
-    });
-    setTopUpTransRefId(data.transRefId);
-    setOutputs((current) => ({ ...current, topUp: data }));
-    return data;
-  }
-
-  async function confirmTopUp() {
-    const data = await api('/api/v1/transactions/confirm', {
-      method: 'POST',
-      role: 'customer',
-      body: { transRefId: topUpTransRefId }
-    });
-    setOutputs((current) => ({ ...current, topUp: data }));
-    return data;
-  }
-
-  async function verifyTopUp() {
-    const data = await api('/api/v1/transactions/verify', {
-      method: 'POST',
-      role: 'customer',
-      body: {
-        transRefId: topUpTransRefId,
-        pin: form.customerPin
-      }
-    });
-    setOutputs((current) => ({ ...current, topUp: data }));
-    await refreshBalance();
-    return data;
-  }
-
   function clearSession() {
+    api('/api/v1/access/logout', { method: 'POST' }).catch(() => {});
     ['miniWallet.customerToken', 'miniWallet.officerToken', 'miniWallet.customer', 'miniWallet.officer'].forEach((key) => localStorage.removeItem(key));
     setCustomerToken('');
     setOfficerToken('');
@@ -572,6 +591,24 @@ function App() {
     setMode('customer');
     setShowWorkspace(false);
     setLogs([{ message: 'session cleared', at: new Date().toLocaleTimeString() }]);
+  }
+
+  function resetP2P() {
+    setP2pStep('request');
+    setP2pTransRefId('');
+    setOutputs((current) => ({ ...current, p2p: null }));
+    updateForm('p2pAmount', '');
+    updateForm('p2pMessage', '');
+    updateForm('customerPin', '');
+  }
+
+  function resetBill() {
+    setBillStep('request');
+    setBillTransRefId('');
+    setOutputs((current) => ({ ...current, bill: null }));
+    updateForm('billerId', '');
+    updateForm('billCode', '');
+    updateForm('customerPin', '');
   }
 
   async function requestP2P() {
@@ -587,6 +624,7 @@ function App() {
     });
     setP2pTransRefId(data.transRefId);
     setOutputs((current) => ({ ...current, p2p: data }));
+    setP2pStep('confirm');
     return data;
   }
 
@@ -597,6 +635,7 @@ function App() {
       body: { transRefId: p2pTransRefId }
     });
     setOutputs((current) => ({ ...current, p2p: data }));
+    setP2pStep('verify');
     return data;
   }
 
@@ -610,6 +649,7 @@ function App() {
       }
     });
     setOutputs((current) => ({ ...current, p2p: data }));
+    setP2pStep('done');
     await refreshBalance();
     return data;
   }
@@ -626,6 +666,7 @@ function App() {
     });
     setBillTransRefId(data.transRefId);
     setOutputs((current) => ({ ...current, bill: data }));
+    setBillStep('confirm');
     return data;
   }
 
@@ -636,6 +677,7 @@ function App() {
       body: { transRefId: billTransRefId }
     });
     setOutputs((current) => ({ ...current, bill: data }));
+    setBillStep('verify');
     return data;
   }
 
@@ -649,6 +691,7 @@ function App() {
       }
     });
     setOutputs((current) => ({ ...current, bill: data }));
+    setBillStep('done');
     await refreshBalance();
     return data;
   }
@@ -711,13 +754,13 @@ function App() {
     }
 
     if (actionId === 'customer-bill') {
-      setMode('customer');
+      setMode('customer-bill');
       run('loadBillers', loadBillers);
       return;
     }
 
     if (actionId === 'customer-topup') {
-      setMode('customer');
+      setMode('customer-topup');
       return;
     }
 
@@ -770,63 +813,135 @@ function App() {
             <section className="dashboard-content">
               <div className="workbench-stack">
                 {mode === 'customer' ? (
-                  <>
-                    <Panel title="Top Up From Bank" state={topUpTransRefId ? topUpTransRefId.slice(-8) : 'Ready'}>
-                      <div className="form-grid">
-                        <label>
-                          Source
-                          <input value="" readOnly placeholder="Linked bank account" />
-                        </label>
-                        <TextInput label="Amount" name="topUpAmount" value={form.topUpAmount} onChange={updateForm} inputMode="numeric" placeholder="Enter top-up amount" />
-                        <TextInput label="PIN" name="customerPin" value={form.customerPin} onChange={updateForm} type="password" placeholder="Enter PIN to verify" />
-                      </div>
-                      <div className="button-row">
-                        <button type="button" onClick={() => run('topUpRequest', requestTopUp)}>Request</button>
-                        <button className="secondary-btn" type="button" onClick={() => run('topUpConfirm', confirmTopUp)}>Confirm</button>
-                        <button className="secondary-btn" type="button" onClick={() => run('topUpVerify', verifyTopUp)}>Top up</button>
-                      </div>
-                      <JsonOutput data={outputs.topUp} />
-                    </Panel>
-
+                  <div className="workbench-stack">
                     <Panel title="Send Money" state={p2pTransRefId ? p2pTransRefId.slice(-8) : 'Ready'}>
-                      <div className="form-grid">
-                        <TextInput label="Receiver Phone" name="p2pReceiverPhone" value={form.p2pReceiverPhone} onChange={updateForm} placeholder="Enter receiver phone" />
-                        <TextInput label="Amount" name="p2pAmount" value={form.p2pAmount} onChange={updateForm} inputMode="numeric" placeholder="Enter amount" />
-                        <label className="span-2">
-                          Message
-                          <input value={form.p2pMessage} placeholder="Add a transfer note" onChange={(event) => updateForm('p2pMessage', event.target.value)} />
-                        </label>
-                        <TextInput label="PIN" name="customerPin" value={form.customerPin} onChange={updateForm} type="password" placeholder="Enter PIN to verify" />
-                      </div>
-                      <div className="button-row">
-                        <button type="button" onClick={() => run('p2pRequest', requestP2P)}>Request</button>
-                        <button className="secondary-btn" type="button" onClick={() => run('p2pConfirm', confirmP2P)}>Confirm</button>
-                        <button className="secondary-btn" type="button" onClick={() => run('p2pVerify', verifyP2P)}>Verify</button>
-                      </div>
+                      {p2pStep === 'request' && (
+                        <>
+                          <div className="form-grid">
+                            <TextInput label="Receiver Phone" name="p2pReceiverPhone" value={form.p2pReceiverPhone} onChange={updateForm} placeholder="Enter receiver phone" />
+                            <TextInput label="Amount" name="p2pAmount" value={form.p2pAmount} onChange={updateForm} inputMode="numeric" placeholder="Enter amount" />
+                            <label className="span-2">
+                              Message
+                              <input value={form.p2pMessage} placeholder="Add a transfer note" onChange={(event) => updateForm('p2pMessage', event.target.value)} />
+                            </label>
+                          </div>
+                          <div className="button-row">
+                            <button type="button" onClick={() => run('p2pRequest', requestP2P)}>Request</button>
+                          </div>
+                        </>
+                      )}
+
+                      {p2pStep === 'confirm' && (
+                        <>
+                          <div className="form-grid" style={{ padding: '16px', background: 'var(--surface-color)', borderRadius: '8px', marginBottom: '16px' }}>
+                            <p style={{ margin: 0, gridColumn: 'span 2' }}><strong>Receiver:</strong> {outputs.p2p?.receiver?.phone || form.p2pReceiverPhone}</p>
+                            <p style={{ margin: 0 }}><strong>Amount:</strong> {formatMoney(outputs.p2p?.amount, outputs.p2p?.currency)}</p>
+                            <p style={{ margin: 0 }}><strong>Fee:</strong> {formatMoney(outputs.p2p?.fee, outputs.p2p?.currency)}</p>
+                            <p style={{ margin: 0, gridColumn: 'span 2', fontSize: '1.2em', color: 'var(--primary-color)' }}><strong>Total:</strong> {formatMoney(outputs.p2p?.totalAmount, outputs.p2p?.currency)}</p>
+                          </div>
+                          <div className="button-row">
+                            <button className="secondary-btn" type="button" onClick={resetP2P}>Cancel</button>
+                            <button type="button" onClick={() => run('p2pConfirm', confirmP2P)}>Confirm Transfer</button>
+                          </div>
+                        </>
+                      )}
+
+                      {p2pStep === 'verify' && (
+                        <>
+                          <div className="form-grid">
+                            <TextInput label="PIN" name="customerPin" value={form.customerPin} onChange={updateForm} type="password" placeholder="Enter PIN to verify" />
+                          </div>
+                          <div className="button-row">
+                            <button className="secondary-btn" type="button" onClick={resetP2P}>Cancel</button>
+                            <button type="button" onClick={() => run('p2pVerify', verifyP2P)}>Verify & Send</button>
+                          </div>
+                        </>
+                      )}
+
+                      {p2pStep === 'done' && (
+                        <>
+                          <div className="form-grid" style={{ padding: '16px', background: 'var(--surface-color)', borderRadius: '8px', marginBottom: '16px', color: 'var(--success-color)' }}>
+                            <p style={{ margin: 0, gridColumn: 'span 2' }}><strong>✓ Transaction Successful</strong></p>
+                            <p style={{ margin: 0, gridColumn: 'span 2' }}><strong>Code:</strong> {outputs.p2p?.transaction?.code}</p>
+                          </div>
+                          <div className="button-row">
+                            <button type="button" onClick={resetP2P}>New Transfer</button>
+                          </div>
+                        </>
+                      )}
+
                       <JsonOutput data={outputs.p2p} />
                     </Panel>
+                  </div>
+                ) : null}
 
+                {mode === 'customer-bill' ? (
+                  <div className="workbench-stack">
                     <Panel title="Bill Payment" state={billTransRefId ? billTransRefId.slice(-8) : 'Ready'}>
-                      <div className="form-grid">
-                        <label>
-                          Biller
-                          <select value={form.billerId} onChange={(event) => updateForm('billerId', event.target.value)}>
-                            <option value="">Select biller</option>
-                            {billers.map((biller) => <option value={biller.id} key={biller.id}>{biller.code} - {biller.name}</option>)}
-                          </select>
-                        </label>
-                        <TextInput label="Bill Code" name="billCode" value={form.billCode} onChange={updateForm} placeholder="Enter bill code" />
-                        <TextInput label="PIN" name="customerPin" value={form.customerPin} onChange={updateForm} type="password" placeholder="Enter PIN to pay" />
-                      </div>
-                      <div className="button-row">
-                        <button type="button" onClick={() => run('loadBillers', loadBillers)}>Load Billers</button>
-                        <button className="secondary-btn" type="button" onClick={() => run('billRequest', requestBill)}>Inquiry</button>
-                        <button className="secondary-btn" type="button" onClick={() => run('billConfirm', confirmBill)}>Confirm</button>
-                        <button className="secondary-btn" type="button" onClick={() => run('billVerify', verifyBill)}>Pay</button>
-                      </div>
+                      {billStep === 'request' && (
+                        <>
+                          <div className="form-grid">
+                            <label>
+                              Biller
+                              <select value={form.billerId} onChange={(event) => updateForm('billerId', event.target.value)}>
+                                <option value="">Select biller</option>
+                                {billers.map((biller) => <option value={biller.id} key={biller.id}>{biller.code} - {biller.name}</option>)}
+                              </select>
+                            </label>
+                            <TextInput label="Bill Code" name="billCode" value={form.billCode} onChange={updateForm} placeholder="Enter bill code" />
+                          </div>
+                          <div className="button-row">
+                            <button type="button" onClick={() => run('loadBillers', loadBillers)}>Load Billers</button>
+                            <button className="secondary-btn" type="button" onClick={() => run('billRequest', requestBill)}>Inquiry</button>
+                          </div>
+                        </>
+                      )}
+
+                      {billStep === 'confirm' && (
+                        <>
+                          <div className="form-grid" style={{ padding: '16px', background: 'var(--surface-color)', borderRadius: '8px', marginBottom: '16px' }}>
+                            <p style={{ margin: 0 }}><strong>Bill Details</strong></p>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', width: '100%', gridColumn: 'span 2' }}>
+                              <span>Biller:</span> <strong>{billers.find(b => b.id === form.billerId)?.name}</strong>
+                              <span>Amount:</span> <strong>{formatMoney(outputs.bill?.amount, outputs.bill?.currency)}</strong>
+                              <span>Fee:</span> <strong>{formatMoney(outputs.bill?.fee, outputs.bill?.currency)}</strong>
+                              <span>Total:</span> <strong className="amount-out">{formatMoney(outputs.bill?.totalAmount, outputs.bill?.currency)}</strong>
+                            </div>
+                          </div>
+                          <div className="button-row">
+                            <button className="secondary-btn" type="button" onClick={resetBill}>Cancel</button>
+                            <button type="button" onClick={() => run('billConfirm', confirmBill)}>Confirm</button>
+                          </div>
+                        </>
+                      )}
+
+                      {billStep === 'verify' && (
+                        <>
+                          <div className="form-grid">
+                            <TextInput label="PIN" name="customerPin" value={form.customerPin} onChange={updateForm} type="password" placeholder="Enter PIN to pay" />
+                          </div>
+                          <div className="button-row">
+                            <button className="secondary-btn" type="button" onClick={resetBill}>Cancel</button>
+                            <button type="button" onClick={() => run('billVerify', verifyBill)}>Verify & Pay</button>
+                          </div>
+                        </>
+                      )}
+
+                      {billStep === 'done' && (
+                        <>
+                          <div className="form-grid" style={{ padding: '16px', background: 'var(--surface-color)', borderRadius: '8px', marginBottom: '16px', color: 'var(--success-color)' }}>
+                            <p style={{ margin: 0, gridColumn: 'span 2' }}><strong>✓ Bill Paid Successfully</strong></p>
+                            <p style={{ margin: 0, gridColumn: 'span 2' }}><strong>Code:</strong> {outputs.bill?.transaction?.code}</p>
+                          </div>
+                          <div className="button-row">
+                            <button type="button" onClick={resetBill}>Pay Another Bill</button>
+                          </div>
+                        </>
+                      )}
+
                       <JsonOutput data={outputs.bill} />
                     </Panel>
-                  </>
+                  </div>
                 ) : null}
 
                 {mode === 'officer' ? (
@@ -850,17 +965,45 @@ function App() {
                     </div>
                     <div className="history-list">
                       {history.map((transaction) => (
-                        <button className="history-item" key={transaction.id} type="button" onClick={() => run('loadDetail', () => loadDetail(transaction.id))}>
-                          <strong>{transaction.type}</strong>
-                          <span><small>{transaction.code}</small><br />{transaction.status}</span>
-                          <b className={transaction.direction === 'OUT' ? 'amount-out' : 'amount-in'}>
-                            {formatMoney(transaction.totalAmount, transaction.currency)}
-                          </b>
-                        </button>
+                        <div className="history-item-container" key={transaction.id}>
+                          <button 
+                            className={`history-item ${expandedTxId === transaction.id ? 'is-expanded' : ''}`}
+                            type="button" 
+                            onClick={() => {
+                              if (expandedTxId === transaction.id) {
+                                setExpandedTxId(null);
+                              } else {
+                                setExpandedTxId(transaction.id);
+                                run('loadDetail', () => loadDetail(transaction.id));
+                              }
+                            }}
+                          >
+                            <strong>{transaction.type}</strong>
+                            <span><small>{transaction.code}</small><br />{transaction.status}</span>
+                            <b className={transaction.direction === 'OUT' ? 'amount-out' : 'amount-in'}>
+                              {formatMoney(transaction.totalAmount, transaction.currency)}
+                            </b>
+                          </button>
+                          {expandedTxId === transaction.id && outputs.detail?.transaction?.id === transaction.id && (
+                            <div className="history-detail-panel">
+                              <div className="detail-grid">
+                                <div className="detail-row"><span>Type</span> <strong>{outputs.detail.transaction.type}</strong></div>
+                                {outputs.detail.transaction.sender && <div className="detail-row"><span>Sender</span> <strong>{outputs.detail.transaction.sender.phone}</strong></div>}
+                                {outputs.detail.transaction.receiver && <div className="detail-row"><span>Receiver</span> <strong>{outputs.detail.transaction.receiver.phone}</strong></div>}
+                                {outputs.detail.transaction.biller && <div className="detail-row"><span>Biller</span> <strong>{outputs.detail.transaction.biller.name}</strong></div>}
+                                <div className="detail-row"><span>Amount</span> <strong>{formatMoney(outputs.detail.transaction.amount, outputs.detail.transaction.currency)}</strong></div>
+                                <div className="detail-row"><span>Fee</span> <strong>{formatMoney(outputs.detail.transaction.fee, outputs.detail.transaction.currency)}</strong></div>
+                                <div className="detail-row"><span>Total</span> <strong>{formatMoney(outputs.detail.transaction.totalAmount, outputs.detail.transaction.currency)}</strong></div>
+                                <div className="detail-row"><span>Date</span> <strong>{new Date(outputs.detail.transaction.createdAt).toLocaleString()}</strong></div>
+                                {outputs.detail.metadata?.note && <div className="detail-row"><span>Note</span> <strong>{outputs.detail.metadata.note}</strong></div>}
+                                {outputs.detail.trail && <div className="detail-row"><span>Trail Status</span> <strong>{outputs.detail.trail.status}</strong></div>}
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       ))}
                     </div>
                     {!history.length ? <EmptyState title="No transaction data" text="Load history after customer sign in." /> : null}
-                    <JsonOutput data={outputs.detail} />
                   </Panel>
                 ) : null}
 
