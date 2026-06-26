@@ -1,28 +1,42 @@
 <main class="wallet-shell" data-app="mini-wallet">
-  <!-- Header -->
   <header class="app-header">
     <div>
-      <p class="eyebrow">Mini Wallet</p>
-      <h1>JITS Pay</h1>
+      <p class="eyebrow">Digital Wallet</p>
+      <h1>JITS Mini Wallet</h1>
     </div>
     <div class="header-actions">
-      <button data-action="refreshAll" type="button" aria-label="Refresh">
-        <svg width="20" height="20" viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
-      </button>
-      <button class="danger-btn" data-action="clearSession" type="button" aria-label="Logout">
-        <svg width="20" height="20" viewBox="0 0 24 24"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>
-      </button>
+      <button class="ghost-btn" data-action="refreshAll" type="button">Refresh</button>
+      <button class="danger-btn" data-action="clearSession" type="button">Clear Session</button>
     </div>
   </header>
 
-  <!-- Auth Gate -->
   <section class="auth-gate" data-auth-gate>
     <div class="auth-copy">
-      <svg width="64" height="64" viewBox="0 0 24 24" fill="white" style="margin-bottom:1rem;"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
-      <h2>JITS Pay</h2>
-      <p>Your premium digital wallet.</p>
+      <p class="eyebrow">Your Wallet</p>
+      <h2>Digital Wallet</h2>
+      <p>Transfer money, cash-in through an officer, and pay bills from one compact wallet workspace.</p>
+      <div class="hero-actions">
+        <button data-action="focusCustomerAuth" type="button">Get Started</button>
+        <button class="ghost-btn" data-action="focusOfficerAuth" type="button">Officer Access</button>
+      </div>
+      <div class="wallet-art" aria-hidden="true">
+        <div class="art-blob"></div>
+        <div class="art-wallet">
+          <div class="art-pocket"></div>
+          <div class="art-card"></div>
+        </div>
+        <div class="art-coin coin-one">$</div>
+        <div class="art-coin coin-two">$</div>
+        <div class="art-stack"></div>
+        <div class="art-gear gear-one"></div>
+        <div class="art-gear gear-two"></div>
+      </div>
     </div>
     <div class="auth-panel">
+      <div class="auth-panel-head">
+        <p class="eyebrow">Sign in</p>
+        <h2>Access Console</h2>
+      </div>
       <nav class="auth-tabs" aria-label="Access roles">
         <button class="auth-tab is-active" data-auth-role="customer" type="button">Customer</button>
         <button class="auth-tab" data-auth-role="officer" type="button">Officer</button>
@@ -30,165 +44,229 @@
 
       <div data-auth-form="customer">
         <div class="form-grid">
-          <label>Phone<input data-input="customerPhone" value="0703900625" autocomplete="username"></label>
-          <label>PIN<input data-input="customerPin" value="123456" type="password" autocomplete="current-password"></label>
-          <label>Currency<input data-input="customerCurrency" value="VND"></label>
+          <label>
+            Phone
+            <input data-input="customerPhone" value="0703900625" autocomplete="username">
+          </label>
+          <label>
+            PIN
+            <input data-input="customerPin" value="123456" type="password" autocomplete="current-password">
+          </label>
+          <label>
+            Currency
+            <input data-input="customerCurrency" value="VND">
+          </label>
         </div>
-        <button class="primary-btn" data-action="customerLogin" type="button" style="margin-bottom:1rem;">Login</button>
-        <button class="ghost-btn" data-action="customerRegister" type="button">Register</button>
+        <div class="button-row">
+          <button data-action="customerLogin" type="button">Login</button>
+          <button class="ghost-btn" data-action="customerRegister" type="button">Register</button>
+        </div>
       </div>
 
       <div data-auth-form="officer" hidden>
         <div class="form-grid">
-          <label>Phone<input data-input="officerPhone" value="0900000000" autocomplete="username"></label>
-          <label>PIN<input data-input="officerPin" value="123456" type="password" autocomplete="current-password"></label>
-          <label>Name<input data-input="officerName" value="Operator"></label>
+          <label>
+            Phone
+            <input data-input="officerPhone" value="0900000000" autocomplete="username">
+          </label>
+          <label>
+            PIN
+            <input data-input="officerPin" value="123456" type="password" autocomplete="current-password">
+          </label>
+          <label>
+            Name
+            <input data-input="officerName" value="Operator">
+          </label>
         </div>
-        <button class="primary-btn" data-action="officerLogin" type="button" style="margin-bottom:1rem;">Login</button>
-        <button class="ghost-btn" data-action="officerRegister" type="button">Register</button>
+        <div class="button-row">
+          <button data-action="officerLogin" type="button">Login</button>
+          <button class="ghost-btn" data-action="officerRegister" type="button">Register</button>
+        </div>
       </div>
     </div>
   </section>
 
-  <!-- Workspace Grid -->
-  <section class="workspace-grid" data-authenticated-only hidden>
+  <section class="status-band" data-authenticated-only hidden>
+    <div class="metric">
+      <span>Role</span>
+      <strong data-field="role">Guest</strong>
+    </div>
+    <div class="metric">
+      <span>Phone</span>
+      <strong data-field="phone">-</strong>
+    </div>
+    <div class="metric">
+      <span>Balance</span>
+      <strong data-field="balance">-</strong>
+    </div>
+    <div class="metric">
+      <span>Pocket</span>
+      <strong data-field="pocket">-</strong>
+    </div>
+  </section>
 
-    <!-- CUSTOMER HOME -->
-    <article class="wallet-card" data-panel="customer">
-      <div class="wallet-card-header">
-        <span data-field="role" style="text-transform: capitalize;">Customer</span>
-        <span data-field="phone">0703900625</span>
+  <nav class="mode-tabs" aria-label="Mini wallet modes" data-authenticated-only hidden>
+    <button class="mode-tab is-active" data-mode="customer" type="button">Customer</button>
+    <button class="mode-tab" data-mode="officer" type="button">Officer</button>
+    <button class="mode-tab" data-mode="transactions" type="button">Transactions</button>
+    <button class="mode-tab" data-mode="config" type="button">Config</button>
+  </nav>
+
+  <section class="workspace-grid" data-authenticated-only hidden>
+    <article class="panel" data-panel="customer">
+      <div class="panel-head">
+        <h2>Customer Access</h2>
+        <span data-chip="customer">Signed out</span>
       </div>
-      <div style="font-size:0.75rem; opacity:0.8; margin-bottom:0.25rem;">Available Balance</div>
-      <h2 class="wallet-card-balance" data-field="balance">- VND</h2>
-      <div class="wallet-card-pocket" data-field="pocket">-</div>
+      <div class="form-grid">
+        <label>
+          Phone
+          <input data-input="customerPhone" value="0703900625" autocomplete="username">
+        </label>
+        <label>
+          PIN
+          <input data-input="customerPin" value="123456" type="password" autocomplete="current-password">
+        </label>
+        <label>
+          Currency
+          <input data-input="customerCurrency" value="VND">
+        </label>
+        <div class="button-row">
+          <button data-action="customerLogin" type="button">Login</button>
+          <button class="ghost-btn" data-action="customerRegister" type="button">Register</button>
+        </div>
+      </div>
     </article>
 
-    <div class="action-grid" data-panel="customer">
-      <button class="action-item" onclick="document.getElementById('p2p-panel').scrollIntoView({behavior:'smooth'})" type="button">
-        <div class="action-icon"><svg width="24" height="24" viewBox="0 0 24 24"><path d="M16 1l-3.5 3.5 1.41 1.41L15 4.83V16h2V4.83l1.09 1.09 1.41-1.41L16 1zM8 23l3.5-3.5-1.41-1.41L9 19.17V8H7v11.17l-1.09-1.09-1.41 1.41L8 23z"/></svg></div>
-        Transfer
-      </button>
-      <button class="action-item" onclick="document.getElementById('bill-panel').scrollIntoView({behavior:'smooth'})" type="button">
-        <div class="action-icon"><svg width="24" height="24" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg></div>
-        Pay Bill
-      </button>
-    </div>
-
-    <article class="panel" data-panel="customer" id="p2p-panel">
+    <article class="panel" data-panel="customer">
       <div class="panel-head">
-        <h2>Transfer Money</h2>
+        <h2>P2P Transfer</h2>
         <span data-state="p2p">Ready</span>
       </div>
       <div class="form-grid">
-        <label>Receiver Phone<input data-input="p2pReceiverPhone" value="0334760905"></label>
-        <label>Amount<input data-input="p2pAmount" value="50000" inputmode="numeric"></label>
-        <label>Message<input data-input="p2pMessage" value="Chuyen tien thu"></label>
+        <label>
+          Receiver Phone
+          <input data-input="p2pReceiverPhone" value="0334760905">
+        </label>
+        <label>
+          Amount
+          <input data-input="p2pAmount" value="50000" inputmode="numeric">
+        </label>
+        <label class="span-2">
+          Message
+          <input data-input="p2pMessage" value="Chuyen tien thu">
+        </label>
       </div>
       <div class="button-row">
-        <button class="primary-btn" data-action="p2pRequest" type="button" style="flex:1;">Request</button>
-        <button class="ghost-btn" data-action="p2pConfirm" type="button" style="flex:1;">Confirm</button>
-        <button class="primary-btn" data-action="p2pVerify" type="button" style="background:var(--success); flex:1;">Verify</button>
+        <button data-action="p2pRequest" type="button">Request</button>
+        <button data-action="p2pConfirm" type="button">Confirm</button>
+        <button data-action="p2pVerify" type="button">Verify</button>
       </div>
       <pre data-output="p2p"></pre>
     </article>
 
-    <article class="panel" data-panel="customer" id="bill-panel">
+    <article class="panel" data-panel="customer">
       <div class="panel-head">
-        <h2>Pay Bill</h2>
+        <h2>Bill Payment</h2>
         <span data-state="bill">Ready</span>
       </div>
       <div class="form-grid">
-        <label>Biller<select data-input="billerId"></select></label>
-        <label>Bill Code<input data-input="billCode" value="EVN001"></label>
+        <label>
+          Biller
+          <select data-input="billerId"></select>
+        </label>
+        <label>
+          Bill Code
+          <input data-input="billCode" value="EVN001">
+        </label>
       </div>
-      <div class="button-row" style="flex-wrap:wrap;">
-        <button class="ghost-btn" data-action="loadBillers" type="button" style="flex:1 1 40%;">Billers</button>
-        <button class="primary-btn" data-action="billRequest" type="button" style="flex:1 1 40%;">Inquiry</button>
-        <button class="ghost-btn" data-action="billConfirm" type="button" style="flex:1 1 40%;">Confirm</button>
-        <button class="primary-btn" data-action="billVerify" type="button" style="background:var(--success); flex:1 1 40%;">Pay</button>
+      <div class="button-row">
+        <button data-action="loadBillers" type="button">Load Billers</button>
+        <button data-action="billRequest" type="button">Inquiry</button>
+        <button data-action="billConfirm" type="button">Confirm</button>
+        <button data-action="billVerify" type="button">Pay</button>
       </div>
       <pre data-output="bill"></pre>
     </article>
 
-    <!-- OFFICER HOME -->
-    <article class="wallet-card" data-panel="officer" style="background: linear-gradient(135deg, #1f2937 0%, #000000 100%);">
-      <div class="wallet-card-header">
-        <span>Officer Console</span>
-        <span data-chip="officer">...</span>
+    <article class="panel" data-panel="officer" hidden>
+      <div class="panel-head">
+        <h2>Officer Access</h2>
+        <span data-chip="officer">Signed out</span>
       </div>
-      <h2 class="wallet-card-balance">Admin</h2>
-      <div class="wallet-card-pocket">Authorized Access</div>
+      <div class="form-grid">
+        <label>
+          Phone
+          <input data-input="officerPhone" value="0900000000" autocomplete="username">
+        </label>
+        <label>
+          PIN
+          <input data-input="officerPin" value="123456" type="password" autocomplete="current-password">
+        </label>
+        <label>
+          Name
+          <input data-input="officerName" value="Operator">
+        </label>
+        <div class="button-row">
+          <button data-action="officerLogin" type="button">Login</button>
+          <button class="ghost-btn" data-action="officerRegister" type="button">Register</button>
+        </div>
+      </div>
     </article>
 
-    <article class="panel" data-panel="officer">
+    <article class="panel" data-panel="officer" hidden>
       <div class="panel-head">
         <h2>Cash-In</h2>
         <span data-state="cashIn">Ready</span>
       </div>
       <div class="form-grid">
-        <label>Customer Phone<input data-input="cashInCustomerPhone" value="0703900625"></label>
-        <label>Amount<input data-input="cashInAmount" value="200000" inputmode="numeric"></label>
+        <label>
+          Customer Phone
+          <input data-input="cashInCustomerPhone" value="0703900625">
+        </label>
+        <label>
+          Amount
+          <input data-input="cashInAmount" value="200000" inputmode="numeric">
+        </label>
       </div>
       <div class="button-row">
-        <button class="primary-btn" data-action="cashIn" type="button">Execute Cash-In</button>
+        <button data-action="cashIn" type="button">Execute</button>
       </div>
       <pre data-output="cashIn"></pre>
     </article>
 
-    <!-- TRANSACTIONS -->
-    <article class="panel" data-panel="transactions" style="padding:1.5rem 1rem;">
-      <div class="panel-head" style="margin-bottom:1rem; padding: 0 0.5rem;">
-        <h2>History</h2>
+    <article class="panel wide-panel" data-panel="transactions" hidden>
+      <div class="panel-head">
+        <h2>Transaction History</h2>
         <span data-state="history">Ready</span>
       </div>
-      <div style="padding: 0 0.5rem;"><button class="ghost-btn" data-action="loadHistory" type="button" style="margin-bottom:1.5rem;">Refresh Feed</button></div>
-      <div class="history-list" data-list="history" style="padding: 0 0.5rem;"></div>
+      <div class="button-row">
+        <button data-action="loadHistory" type="button">Load History</button>
+      </div>
+      <div class="history-list" data-list="history"></div>
       <pre data-output="detail"></pre>
     </article>
 
-    <!-- CONFIG -->
-    <article class="panel" data-panel="config">
+    <article class="panel wide-panel" data-panel="config" hidden>
       <div class="panel-head">
         <h2>Service Config</h2>
         <span data-state="config">Officer only</span>
       </div>
-      <button class="ghost-btn" data-action="loadConfigServices" type="button" style="margin-bottom:1.5rem;">Load Services</button>
+      <div class="button-row">
+        <button data-action="loadConfigServices" type="button">Load Services</button>
+      </div>
       <div class="config-layout">
         <div class="service-list" data-list="services"></div>
         <div class="config-detail" data-list="configDetail"></div>
       </div>
     </article>
-
-    <!-- EVENT CONSOLE (Moved here from aside for better mobile fit) -->
-    <article class="panel" style="margin-top: 2rem;">
-      <div class="panel-head">
-        <h2 style="font-size:0.875rem;">Run Log</h2>
-        <span data-state="last" style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Idle</span>
-      </div>
-      <pre data-output="log" style="max-height: 150px;"></pre>
-    </article>
-
   </section>
 
-  <!-- Bottom Nav -->
-  <nav class="bottom-nav" aria-label="Wallet navigation" data-authenticated-only hidden>
-    <button class="nav-item is-active mode-tab" data-mode="customer" type="button">
-      <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
-      <span>Home</span>
-    </button>
-    <button class="nav-item mode-tab" data-mode="transactions" type="button">
-      <svg viewBox="0 0 24 24"><path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>
-      <span>History</span>
-    </button>
-    <button class="nav-item mode-tab" data-mode="officer" type="button">
-      <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
-      <span>Admin</span>
-    </button>
-    <button class="nav-item mode-tab" data-mode="config" type="button">
-      <svg viewBox="0 0 24 24"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>
-      <span>Config</span>
-    </button>
-  </nav>
-
+  <aside class="event-console" data-authenticated-only hidden>
+    <div class="panel-head">
+      <h2>Run Log</h2>
+      <span data-state="last">Idle</span>
+    </div>
+    <pre data-output="log"></pre>
+  </aside>
 </main>

@@ -19,13 +19,6 @@ const initialForm = {
   cashInAmount: '200000'
 };
 
-const navItems = [
-  { id: 'customer', label: 'Wallet' },
-  { id: 'officer', label: 'Operations' },
-  { id: 'transactions', label: 'Activity' },
-  { id: 'config', label: 'Config' }
-];
-
 function readStoredJson(key) {
   try {
     return JSON.parse(localStorage.getItem(key) || 'null');
@@ -38,67 +31,37 @@ function formatMoney(amount, currency) {
   return new Intl.NumberFormat('vi-VN').format(Number(amount || 0)) + ' ' + (currency || 'VND');
 }
 
-function shortId(value) {
-  if (!value) {
-    return '-';
-  }
-
-  return String(value).slice(-8).toUpperCase();
-}
-
-function formatDate(value) {
-  if (!value) {
-    return '-';
-  }
-
-  return new Intl.DateTimeFormat('vi-VN', {
-    day: '2-digit',
-    month: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit'
-  }).format(new Date(Number(value)));
-}
-
 function WalletArt() {
   return (
     <div className="wallet-art" aria-hidden="true">
       <div className="art-blob" />
-      <div className="art-stack" />
       <div className="art-wallet">
         <div className="art-pocket" />
         <div className="art-card" />
-        <div className="art-chip" />
       </div>
       <div className="art-coin coin-one">$</div>
       <div className="art-coin coin-two">$</div>
-      <div className="art-line line-one" />
-      <div className="art-line line-two" />
+      <div className="art-stack" />
+      <div className="art-gear gear-one" />
+      <div className="art-gear gear-two" />
     </div>
   );
 }
 
-function TextInput({ label, name, value, onChange, type = 'text', inputMode, placeholder }) {
+function JsonOutput({ data }) {
+  return <pre>{data ? JSON.stringify(data, null, 2) : ''}</pre>;
+}
+
+function TextInput({ label, name, value, onChange, type = 'text', inputMode }) {
   return (
-    <label className="field">
-      <span>{label}</span>
+    <label>
+      {label}
       <input
         value={value}
         type={type}
         inputMode={inputMode}
-        placeholder={placeholder}
         onChange={(event) => onChange(name, event.target.value)}
       />
-    </label>
-  );
-}
-
-function SelectInput({ label, value, onChange, children }) {
-  return (
-    <label className="field">
-      <span>{label}</span>
-      <select value={value} onChange={(event) => onChange(event.target.value)}>
-        {children}
-      </select>
     </label>
   );
 }
@@ -127,33 +90,31 @@ function AuthGate({ authRole, setAuthRole, form, onChange, onCustomerLogin, onCu
   return (
     <section className="auth-gate">
       <div className="auth-copy">
-        <div className="brand-mark">JW</div>
-        <p className="eyebrow">JITS Wallet</p>
-        <h1>Digital Wallet</h1>
-        <p className="auth-lead">Account access, wallet balance, transfers, bill collection, and operator cash-in in one workspace.</p>
+        <p className="eyebrow">Your Wallet</p>
+        <h2>Digital Wallet</h2>
+        <p>Transfer money, cash-in through an officer, and pay bills from one compact wallet workspace.</p>
         <div className="hero-actions">
-          <button type="button" onClick={() => setAuthRole('customer')}>Customer sign in</button>
-          <button className="secondary-btn" type="button" onClick={() => setAuthRole('officer')}>Officer sign in</button>
+          <button type="button" onClick={() => setAuthRole('customer')}>Get Started</button>
+          <button className="ghost-btn" type="button" onClick={() => setAuthRole('officer')}>Officer Access</button>
         </div>
         <WalletArt />
       </div>
 
       <div className="auth-panel">
-        <div className="panel-title-block">
-          <p className="eyebrow">Secure access</p>
-          <h2>{authRole === 'customer' ? 'Customer wallet' : 'Officer console'}</h2>
+        <div className="auth-panel-head">
+          <p className="eyebrow">Sign in</p>
+          <h2>Access Console</h2>
         </div>
-
-        <nav className="segmented-control" aria-label="Access roles">
+        <nav className="auth-tabs" aria-label="Access roles">
           <button
-            className={authRole === 'customer' ? 'is-active' : ''}
+            className={`auth-tab ${authRole === 'customer' ? 'is-active' : ''}`}
             type="button"
             onClick={() => setAuthRole('customer')}
           >
             Customer
           </button>
           <button
-            className={authRole === 'officer' ? 'is-active' : ''}
+            className={`auth-tab ${authRole === 'officer' ? 'is-active' : ''}`}
             type="button"
             onClick={() => setAuthRole('officer')}
           >
@@ -166,12 +127,12 @@ function AuthGate({ authRole, setAuthRole, form, onChange, onCustomerLogin, onCu
           {authRole === 'customer' ? (
             <>
               <button type="button" disabled={busy === 'customerLogin'} onClick={onCustomerLogin}>Login</button>
-              <button className="secondary-btn" type="button" disabled={busy === 'customerRegister'} onClick={onCustomerRegister}>Register</button>
+              <button className="ghost-btn" type="button" disabled={busy === 'customerRegister'} onClick={onCustomerRegister}>Register</button>
             </>
           ) : (
             <>
               <button type="button" disabled={busy === 'officerLogin'} onClick={onOfficerLogin}>Login</button>
-              <button className="secondary-btn" type="button" disabled={busy === 'officerRegister'} onClick={onOfficerRegister}>Register</button>
+              <button className="ghost-btn" type="button" disabled={busy === 'officerRegister'} onClick={onOfficerRegister}>Register</button>
             </>
           )}
         </div>
@@ -181,381 +142,15 @@ function AuthGate({ authRole, setAuthRole, form, onChange, onCustomerLogin, onCu
   );
 }
 
-function Sidebar({ mode, setMode, activeUser, customer, officer }) {
+function Panel({ title, state, children, wide = false }) {
   return (
-    <aside className="sidebar">
-      <div className="sidebar-brand">
-        <div className="brand-mark">JW</div>
-        <div>
-          <strong>JITS Wallet</strong>
-          <span>Mini Wallet Suite</span>
-        </div>
-      </div>
-
-      <nav className="side-nav" aria-label="Wallet navigation">
-        {navItems.map((item) => (
-          <button className={mode === item.id ? 'is-active' : ''} key={item.id} type="button" onClick={() => setMode(item.id)}>
-            <span>{item.label}</span>
-          </button>
-        ))}
-      </nav>
-
-      <div className="session-card">
-        <span>Active session</span>
-        <strong>{activeUser?.phone || '-'}</strong>
-        <small>Customer: {customer?.phone || 'none'}</small>
-        <small>Officer: {officer?.phone || 'none'}</small>
-      </div>
-    </aside>
-  );
-}
-
-function Stat({ label, value, tone }) {
-  return (
-    <div className={`stat ${tone || ''}`}>
-      <span>{label}</span>
-      <strong>{value}</strong>
-    </div>
-  );
-}
-
-function WalletCard({ pocket, customer }) {
-  return (
-    <section className="wallet-card">
-      <div>
-        <span className="card-label">Available balance</span>
-        <strong>{pocket ? formatMoney(pocket.balance, pocket.currency) : '-'}</strong>
-      </div>
-      <div className="wallet-card-bottom">
-        <span>{customer?.phone || 'No customer session'}</span>
-        <span>{pocket ? `${pocket.status} / ${shortId(pocket.id)}` : 'Pocket unavailable'}</span>
-      </div>
-    </section>
-  );
-}
-
-function Surface({ title, eyebrow, state, children, className = '' }) {
-  return (
-    <section className={`surface ${className}`}>
-      <div className="surface-head">
-        <div>
-          {eyebrow ? <p className="eyebrow">{eyebrow}</p> : null}
-          <h2>{title}</h2>
-        </div>
-        {state ? <span className="state-pill">{state}</span> : null}
+    <article className={`panel ${wide ? 'wide-panel' : ''}`}>
+      <div className="panel-head">
+        <h2>{title}</h2>
+        {state ? <span>{state}</span> : null}
       </div>
       {children}
-    </section>
-  );
-}
-
-function WorkflowStepper({ current }) {
-  const steps = ['Request', 'Confirm', 'Verify'];
-
-  return (
-    <div className="stepper">
-      {steps.map((step, index) => (
-        <div className={`step ${index <= current ? 'is-done' : ''}`} key={step}>
-          <span>{index + 1}</span>
-          <strong>{step}</strong>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function receiptRows(data) {
-  if (!data) {
-    return [];
-  }
-
-  const transaction = data.transaction || {};
-  const base = [
-    ['Reference', shortId(data.transRefId)],
-    ['Service', data.serviceCode || '-'],
-    ['Status', transaction.status || data.status || 'pending']
-  ];
-
-  if (data.receiver) {
-    base.push(['Receiver', data.receiver.phone]);
-  }
-
-  if (data.biller) {
-    base.push(['Biller', data.biller.name || data.biller.code]);
-  }
-
-  if (data.invoice) {
-    base.push(['Invoice', data.invoice.billCode]);
-  }
-
-  base.push(['Amount', formatMoney(data.amount || transaction.amount, data.currency || transaction.currency)]);
-  base.push(['Fee', formatMoney(data.fee || transaction.fee, data.currency || transaction.currency)]);
-  base.push(['Total', formatMoney(data.totalAmount || transaction.totalAmount, data.currency || transaction.currency)]);
-
-  if (transaction.code) {
-    base.push(['Transaction', transaction.code]);
-  }
-
-  if (transaction.billerRefId) {
-    base.push(['Biller Ref', transaction.billerRefId]);
-  }
-
-  return base;
-}
-
-function Receipt({ title, data }) {
-  const rows = receiptRows(data);
-
-  return (
-    <div className="receipt">
-      <div className="receipt-head">
-        <strong>{title}</strong>
-        <span>{data ? shortId(data.transRefId) : 'Waiting'}</span>
-      </div>
-      {rows.length ? rows.map(([label, value]) => (
-        <div className="receipt-row" key={`${title}-${label}`}>
-          <span>{label}</span>
-          <strong>{value || '-'}</strong>
-        </div>
-      )) : (
-        <p className="empty-copy">No transaction selected.</p>
-      )}
-      <TechnicalPayload data={data} />
-    </div>
-  );
-}
-
-function TechnicalPayload({ data }) {
-  if (!data) {
-    return null;
-  }
-
-  return (
-    <details className="payload">
-      <summary>Technical payload</summary>
-      <pre>{JSON.stringify(data, null, 2)}</pre>
-    </details>
-  );
-}
-
-function CustomerWorkspace({
-  form,
-  updateForm,
-  pocket,
-  customer,
-  billers,
-  outputs,
-  p2pTransRefId,
-  billTransRefId,
-  busy,
-  run,
-  requestP2P,
-  confirmP2P,
-  verifyP2P,
-  loadBillers,
-  requestBill,
-  confirmBill,
-  verifyBill,
-  loadHistory
-}) {
-  const p2pStep = outputs.p2p?.transaction ? 2 : p2pTransRefId ? 1 : 0;
-  const billStep = outputs.bill?.transaction ? 2 : billTransRefId ? 1 : 0;
-
-  return (
-    <div className="customer-layout">
-      <div className="left-stack">
-        <WalletCard pocket={pocket} customer={customer} />
-        <Surface title="Transfer money" eyebrow="P2P transfer" state={p2pTransRefId ? shortId(p2pTransRefId) : 'Ready'}>
-          <WorkflowStepper current={p2pStep} />
-          <div className="form-grid">
-            <TextInput label="Receiver phone" name="p2pReceiverPhone" value={form.p2pReceiverPhone} onChange={updateForm} />
-            <TextInput label="Amount" name="p2pAmount" value={form.p2pAmount} onChange={updateForm} inputMode="numeric" />
-            <label className="field span-2">
-              <span>Message</span>
-              <input value={form.p2pMessage} onChange={(event) => updateForm('p2pMessage', event.target.value)} />
-            </label>
-          </div>
-          <div className="button-row">
-            <button type="button" disabled={busy === 'p2pRequest'} onClick={() => run('p2pRequest', requestP2P)}>Request</button>
-            <button className="secondary-btn" type="button" disabled={!p2pTransRefId || busy === 'p2pConfirm'} onClick={() => run('p2pConfirm', confirmP2P)}>Confirm</button>
-            <button type="button" disabled={!p2pTransRefId || busy === 'p2pVerify'} onClick={() => run('p2pVerify', verifyP2P)}>Verify PIN</button>
-          </div>
-        </Surface>
-      </div>
-
-      <div className="right-stack">
-        <Surface title="Payment receipt" eyebrow="Current transfer">
-          <Receipt title="P2P" data={outputs.p2p} />
-        </Surface>
-      </div>
-
-      <Surface title="Bill payment" eyebrow="Inquiry and collection" state={billTransRefId ? shortId(billTransRefId) : 'Ready'} className="span-wide">
-        <div className="bill-grid">
-          <div>
-            <WorkflowStepper current={billStep} />
-            <div className="form-grid">
-              <SelectInput label="Biller" value={form.billerId} onChange={(value) => updateForm('billerId', value)}>
-                <option value="">Select biller</option>
-                {billers.map((biller) => <option value={biller.id} key={biller.id}>{biller.code} - {biller.name}</option>)}
-              </SelectInput>
-              <TextInput label="Bill code" name="billCode" value={form.billCode} onChange={updateForm} />
-            </div>
-            <div className="button-row">
-              <button className="secondary-btn" type="button" onClick={() => run('loadBillers', loadBillers)}>Load billers</button>
-              <button type="button" disabled={!form.billerId || busy === 'billRequest'} onClick={() => run('billRequest', requestBill)}>Inquiry</button>
-              <button className="secondary-btn" type="button" disabled={!billTransRefId || busy === 'billConfirm'} onClick={() => run('billConfirm', confirmBill)}>Confirm</button>
-              <button type="button" disabled={!billTransRefId || busy === 'billVerify'} onClick={() => run('billVerify', verifyBill)}>Pay</button>
-            </div>
-          </div>
-          <Receipt title="Bill" data={outputs.bill} />
-        </div>
-      </Surface>
-
-      <div className="quick-actions span-wide">
-        <button type="button" onClick={() => run('loadHistory', loadHistory)}>Refresh activity</button>
-        <span>Latest balance: {pocket ? formatMoney(pocket.balance, pocket.currency) : '-'}</span>
-      </div>
-    </div>
-  );
-}
-
-function OfficerWorkspace({ form, updateForm, officer, outputs, busy, run, officerLogin, cashIn }) {
-  return (
-    <div className="operations-layout">
-      <Surface title="Officer profile" eyebrow="Access" state={officer?.phone || 'Signed out'}>
-        <AuthFields role="officer" form={form} onChange={updateForm} />
-        <div className="button-row">
-          <button type="button" disabled={busy === 'officerLogin'} onClick={() => run('officerLogin', () => officerLogin(false))}>Login</button>
-          <button className="secondary-btn" type="button" disabled={busy === 'officerRegister'} onClick={() => run('officerRegister', () => officerLogin(true))}>Register</button>
-        </div>
-      </Surface>
-
-      <Surface title="Cash-in posting" eyebrow="Bank to customer" state="Config: CASH_IN">
-        <div className="form-grid">
-          <TextInput label="Customer phone" name="cashInCustomerPhone" value={form.cashInCustomerPhone} onChange={updateForm} />
-          <TextInput label="Amount" name="cashInAmount" value={form.cashInAmount} onChange={updateForm} inputMode="numeric" />
-        </div>
-        <div className="button-row">
-          <button type="button" disabled={!officer || busy === 'cashIn'} onClick={() => run('cashIn', cashIn)}>Post cash-in</button>
-        </div>
-      </Surface>
-
-      <Surface title="Cash-in receipt" eyebrow="Result">
-        <Receipt title="Cash-in" data={outputs.cashIn} />
-      </Surface>
-    </div>
-  );
-}
-
-function ActivityWorkspace({ history, outputs, run, loadHistory, loadDetail }) {
-  return (
-    <Surface title="Transaction activity" eyebrow="Ledger receipts" state={`${history.length} item(s)`} className="full-width">
-      <div className="table-actions">
-        <button type="button" onClick={() => run('loadHistory', loadHistory)}>Load history</button>
-      </div>
-      <div className="activity-table">
-        <div className="activity-head">
-          <span>Type</span>
-          <span>Code</span>
-          <span>Amount</span>
-          <span>Status</span>
-          <span>Time</span>
-        </div>
-        {history.length ? history.map((transaction) => (
-          <button className="activity-row" type="button" key={transaction.id} onClick={() => run('loadDetail', () => loadDetail(transaction.id))}>
-            <span>{transaction.type}</span>
-            <strong>{transaction.code}</strong>
-            <span className={transaction.direction === 'OUT' ? 'amount-out' : 'amount-in'}>
-              {transaction.direction === 'OUT' ? '-' : '+'}{formatMoney(transaction.totalAmount, transaction.currency)}
-            </span>
-            <span>{transaction.status}</span>
-            <span>{formatDate(transaction.createdAt)}</span>
-          </button>
-        )) : (
-          <p className="empty-copy">No transactions loaded.</p>
-        )}
-      </div>
-      <TechnicalPayload data={outputs.detail} />
-    </Surface>
-  );
-}
-
-function ConfigWorkspace({ services, configDetail, run, loadConfigServices, loadConfigDetail }) {
-  return (
-    <Surface title="Service configuration" eyebrow="Config-driven engine" state={configDetail?.service?.code || 'Officer access'} className="full-width">
-      <div className="config-layout">
-        <div className="config-sidebar">
-          <button type="button" onClick={() => run('loadConfigServices', loadConfigServices)}>Load services</button>
-          <div className="service-list">
-            {services.map((service) => (
-              <button className="service-row" type="button" key={service.id} onClick={() => run('loadConfigDetail', () => loadConfigDetail(service.code))}>
-                <strong>{service.code}</strong>
-                <span>{service.name}</span>
-                <small>{service.type} / {service.authMethod}</small>
-              </button>
-            ))}
-          </div>
-        </div>
-        <ConfigDetail detail={configDetail} />
-      </div>
-    </Surface>
-  );
-}
-
-function ConfigDetail({ detail }) {
-  if (!detail) {
-    return <div className="config-detail empty-copy">Select a service.</div>;
-  }
-
-  return (
-    <div className="config-detail">
-      <ConfigBlock title="Ledger steps" rows={detail.definitions} mapRow={(row) => [`#${row.stepOrder}`, `${row.debitSource} -> ${row.creditSource}`, `${row.amountSource} / ${row.stage}`]} />
-      <ConfigBlock title="Fields" rows={detail.fields} mapRow={(row) => [row.order, `${row.name} <- ${row.source}`, `${row.rule} / ${row.dataType}`]} />
-      <ConfigBlock title="Validations" rows={detail.validations} mapRow={(row) => [row.ruleOrder, row.ruleFunction, `${row.input} / ${row.errorMessage}`]} />
-    </div>
-  );
-}
-
-function ConfigBlock({ title, rows, mapRow }) {
-  return (
-    <section className="config-block">
-      <h3>{title}</h3>
-      {rows.length ? rows.map((row) => {
-        const cells = mapRow(row);
-        return (
-          <div className="config-row" key={`${title}-${cells[0]}-${cells[1]}`}>
-            <strong>{cells[0]}</strong>
-            <span>{cells[1]}</span>
-            <small>{cells[2]}</small>
-          </div>
-        );
-      }) : <small>No data</small>}
-    </section>
-  );
-}
-
-function AuditLog({ logs }) {
-  return (
-    <aside className="audit-log">
-      <div className="surface-head">
-        <div>
-          <p className="eyebrow">Audit log</p>
-          <h2>Session events</h2>
-        </div>
-        <span className="state-pill">{logs[0]?.message || 'Idle'}</span>
-      </div>
-      <div className="log-list">
-        {logs.length ? logs.map((entry, index) => (
-          <details className="log-entry" key={`${entry.at}-${entry.message}-${index}`}>
-            <summary>
-              <span>{entry.at}</span>
-              <strong>{entry.message}</strong>
-            </summary>
-            {entry.payload ? <pre>{JSON.stringify(entry.payload, null, 2)}</pre> : null}
-          </details>
-        )) : <p className="empty-copy">No events yet.</p>}
-      </div>
-    </aside>
+    </article>
   );
 }
 
@@ -825,22 +420,6 @@ function App() {
     return data;
   }
 
-  async function refreshWorkspace() {
-    const result = {};
-
-    if (customerToken) {
-      result.balance = await refreshBalance();
-      result.billers = await loadBillers();
-      result.history = await loadHistory();
-    }
-
-    if (officerToken) {
-      result.configServices = await loadConfigServices();
-    }
-
-    return result;
-  }
-
   useEffect(() => {
     if (customerToken) {
       run('refreshBalance', refreshBalance);
@@ -848,9 +427,24 @@ function App() {
     }
   }, [customerToken]);
 
-  if (!hasSession) {
-    return (
-      <main className="login-shell">
+  return (
+    <main className="wallet-shell">
+      <header className="app-header">
+        <div>
+          <p className="eyebrow">Digital Wallet</p>
+          <h1>JITS Mini Wallet</h1>
+        </div>
+        <div className="header-actions">
+          <button className="ghost-btn" type="button" onClick={() => run('refreshAll', async () => {
+            const balance = await refreshBalance();
+            const transactions = await loadHistory();
+            return { balance, transactions };
+          })}>Refresh</button>
+          <button className="danger-btn" type="button" onClick={clearSession}>Clear Session</button>
+        </div>
+      </header>
+
+      {!hasSession ? (
         <AuthGate
           authRole={authRole}
           setAuthRole={setAuthRole}
@@ -871,85 +465,181 @@ function App() {
           busy={busy}
           authMessage={authMessage}
         />
-      </main>
-    );
+      ) : (
+        <>
+          <section className="status-band">
+            <div className="metric"><span>Role</span><strong>{activeUser ? mode : 'Guest'}</strong></div>
+            <div className="metric"><span>Phone</span><strong>{activeUser?.phone || '-'}</strong></div>
+            <div className="metric"><span>Balance</span><strong>{pocket ? formatMoney(pocket.balance, pocket.currency) : '-'}</strong></div>
+            <div className="metric"><span>Pocket</span><strong>{pocket ? `${pocket.status} / ${pocket.id.slice(-6)}` : '-'}</strong></div>
+          </section>
+
+          <nav className="mode-tabs" aria-label="Mini wallet modes">
+            {['customer', 'officer', 'transactions', 'config'].map((item) => (
+              <button className={`mode-tab ${mode === item ? 'is-active' : ''}`} key={item} type="button" onClick={() => setMode(item)}>
+                {item[0].toUpperCase() + item.slice(1)}
+              </button>
+            ))}
+          </nav>
+
+          <section className="workspace-grid">
+            {mode === 'customer' ? (
+              <>
+                <Panel title="Customer Access" state={customer?.phone || 'Signed out'}>
+                  <AuthFields role="customer" form={form} onChange={updateForm} />
+                  <div className="button-row">
+                    <button type="button" onClick={() => run('customerLogin', () => customerLogin(false))}>Login</button>
+                    <button className="ghost-btn" type="button" onClick={() => run('customerRegister', () => customerLogin(true))}>Register</button>
+                  </div>
+                </Panel>
+
+                <Panel title="P2P Transfer" state={p2pTransRefId ? p2pTransRefId.slice(-8) : 'Ready'}>
+                  <div className="form-grid">
+                    <TextInput label="Receiver Phone" name="p2pReceiverPhone" value={form.p2pReceiverPhone} onChange={updateForm} />
+                    <TextInput label="Amount" name="p2pAmount" value={form.p2pAmount} onChange={updateForm} inputMode="numeric" />
+                    <label className="span-2">
+                      Message
+                      <input value={form.p2pMessage} onChange={(event) => updateForm('p2pMessage', event.target.value)} />
+                    </label>
+                  </div>
+                  <div className="button-row">
+                    <button type="button" onClick={() => run('p2pRequest', requestP2P)}>Request</button>
+                    <button type="button" onClick={() => run('p2pConfirm', confirmP2P)}>Confirm</button>
+                    <button type="button" onClick={() => run('p2pVerify', verifyP2P)}>Verify</button>
+                  </div>
+                  <JsonOutput data={outputs.p2p} />
+                </Panel>
+
+                <Panel title="Bill Payment" state={billTransRefId ? billTransRefId.slice(-8) : 'Ready'}>
+                  <div className="form-grid">
+                    <label>
+                      Biller
+                      <select value={form.billerId} onChange={(event) => updateForm('billerId', event.target.value)}>
+                        <option value="">Select biller</option>
+                        {billers.map((biller) => <option value={biller.id} key={biller.id}>{biller.code} - {biller.name}</option>)}
+                      </select>
+                    </label>
+                    <TextInput label="Bill Code" name="billCode" value={form.billCode} onChange={updateForm} />
+                  </div>
+                  <div className="button-row">
+                    <button type="button" onClick={() => run('loadBillers', loadBillers)}>Load Billers</button>
+                    <button type="button" onClick={() => run('billRequest', requestBill)}>Inquiry</button>
+                    <button type="button" onClick={() => run('billConfirm', confirmBill)}>Confirm</button>
+                    <button type="button" onClick={() => run('billVerify', verifyBill)}>Pay</button>
+                  </div>
+                  <JsonOutput data={outputs.bill} />
+                </Panel>
+              </>
+            ) : null}
+
+            {mode === 'officer' ? (
+              <>
+                <Panel title="Officer Access" state={officer?.phone || 'Signed out'}>
+                  <AuthFields role="officer" form={form} onChange={updateForm} />
+                  <div className="button-row">
+                    <button type="button" onClick={() => run('officerLogin', () => officerLogin(false))}>Login</button>
+                    <button className="ghost-btn" type="button" onClick={() => run('officerRegister', () => officerLogin(true))}>Register</button>
+                  </div>
+                </Panel>
+
+                <Panel title="Cash-In" state="Ready">
+                  <div className="form-grid">
+                    <TextInput label="Customer Phone" name="cashInCustomerPhone" value={form.cashInCustomerPhone} onChange={updateForm} />
+                    <TextInput label="Amount" name="cashInAmount" value={form.cashInAmount} onChange={updateForm} inputMode="numeric" />
+                  </div>
+                  <div className="button-row">
+                    <button type="button" onClick={() => run('cashIn', cashIn)}>Execute</button>
+                  </div>
+                  <JsonOutput data={outputs.cashIn} />
+                </Panel>
+              </>
+            ) : null}
+
+            {mode === 'transactions' ? (
+              <Panel title="Transaction History" state={`${history.length} item(s)`} wide>
+                <div className="button-row">
+                  <button type="button" onClick={() => run('loadHistory', loadHistory)}>Load History</button>
+                </div>
+                <div className="history-list">
+                  {history.map((transaction) => (
+                    <div className="history-item" key={transaction.id}>
+                      <strong>{transaction.type}</strong>
+                      <span><small>{transaction.code}</small><br />{transaction.status}</span>
+                      <button type="button" onClick={() => run('loadDetail', () => loadDetail(transaction.id))}>
+                        <span className={transaction.direction === 'OUT' ? 'amount-out' : 'amount-in'}>
+                          {formatMoney(transaction.totalAmount, transaction.currency)}
+                        </span>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <JsonOutput data={outputs.detail} />
+              </Panel>
+            ) : null}
+
+            {mode === 'config' ? (
+              <Panel title="Service Config" state={configDetail?.service?.code || 'Officer only'} wide>
+                <div className="button-row">
+                  <button type="button" onClick={() => run('loadConfigServices', loadConfigServices)}>Load Services</button>
+                </div>
+                <div className="config-layout">
+                  <div className="service-list">
+                    {services.map((service) => (
+                      <button className="service-card" type="button" key={service.id} onClick={() => run('loadConfigDetail', () => loadConfigDetail(service.code))}>
+                        <strong>{service.code}</strong>
+                        <span>{service.name}</span>
+                        <small>{service.type} / {service.authMethod}</small>
+                      </button>
+                    ))}
+                  </div>
+                  <ConfigDetail detail={configDetail} />
+                </div>
+              </Panel>
+            ) : null}
+          </section>
+
+          <aside className="event-console">
+            <div className="panel-head">
+              <h2>Run Log</h2>
+              <span>{logs[0]?.message || 'Idle'}</span>
+            </div>
+            <pre>{logs.map((entry) => `[${entry.at}] ${entry.message}${entry.payload ? `\n${JSON.stringify(entry.payload, null, 2)}` : ''}`).join('\n\n')}</pre>
+          </aside>
+        </>
+      )}
+    </main>
+  );
+}
+
+function ConfigDetail({ detail }) {
+  if (!detail) {
+    return <div className="config-detail" />;
   }
 
   return (
-    <main className="app-shell">
-      <Sidebar mode={mode} setMode={setMode} activeUser={activeUser} customer={customer} officer={officer} />
-      <section className="main-workspace">
-        <header className="topbar">
-          <div>
-            <p className="eyebrow">Workspace</p>
-            <h1>{mode === 'customer' ? 'Wallet overview' : navItems.find((item) => item.id === mode)?.label}</h1>
+    <div className="config-detail">
+      <ConfigBlock title="Ledger Steps" rows={detail.definitions} mapRow={(row) => [`#${row.stepOrder}`, `${row.debitSource} -> ${row.creditSource}`, `${row.amountSource} / ${row.stage}`]} />
+      <ConfigBlock title="Fields" rows={detail.fields} mapRow={(row) => [row.order, `${row.name} <- ${row.source}`, `${row.rule} / ${row.dataType}`]} />
+      <ConfigBlock title="Validations" rows={detail.validations} mapRow={(row) => [row.ruleOrder, row.ruleFunction, `${row.input} / ${row.errorMessage}`]} />
+    </div>
+  );
+}
+
+function ConfigBlock({ title, rows, mapRow }) {
+  return (
+    <section className="config-block">
+      <h3>{title}</h3>
+      {rows.length ? rows.map((row) => {
+        const cells = mapRow(row);
+        return (
+          <div className="config-row" key={`${title}-${cells[0]}-${cells[1]}`}>
+            <strong>{cells[0]}</strong>
+            <span>{cells[1]}</span>
+            <small>{cells[2]}</small>
           </div>
-          <div className="topbar-actions">
-            <button className="secondary-btn" type="button" onClick={() => run('refreshWorkspace', refreshWorkspace)}>Refresh</button>
-            <button className="danger-btn" type="button" onClick={clearSession}>Sign out</button>
-          </div>
-        </header>
-
-        <section className="status-grid">
-          <Stat label="Customer" value={customer?.phone || 'Not signed in'} />
-          <Stat label="Officer" value={officer?.phone || 'Not signed in'} />
-          <Stat label="Balance" value={pocket ? formatMoney(pocket.balance, pocket.currency) : '-'} tone="highlight" />
-          <Stat label="Pocket" value={pocket ? `${pocket.status} / ${shortId(pocket.id)}` : '-'} />
-        </section>
-
-        {mode === 'customer' ? (
-          <CustomerWorkspace
-            form={form}
-            updateForm={updateForm}
-            pocket={pocket}
-            customer={customer}
-            billers={billers}
-            outputs={outputs}
-            p2pTransRefId={p2pTransRefId}
-            billTransRefId={billTransRefId}
-            busy={busy}
-            run={run}
-            requestP2P={requestP2P}
-            confirmP2P={confirmP2P}
-            verifyP2P={verifyP2P}
-            loadBillers={loadBillers}
-            requestBill={requestBill}
-            confirmBill={confirmBill}
-            verifyBill={verifyBill}
-            loadHistory={loadHistory}
-          />
-        ) : null}
-
-        {mode === 'officer' ? (
-          <OfficerWorkspace
-            form={form}
-            updateForm={updateForm}
-            officer={officer}
-            outputs={outputs}
-            busy={busy}
-            run={run}
-            officerLogin={officerLogin}
-            cashIn={cashIn}
-          />
-        ) : null}
-
-        {mode === 'transactions' ? (
-          <ActivityWorkspace history={history} outputs={outputs} run={run} loadHistory={loadHistory} loadDetail={loadDetail} />
-        ) : null}
-
-        {mode === 'config' ? (
-          <ConfigWorkspace
-            services={services}
-            configDetail={configDetail}
-            run={run}
-            loadConfigServices={loadConfigServices}
-            loadConfigDetail={loadConfigDetail}
-          />
-        ) : null}
-
-        <AuditLog logs={logs} />
-      </section>
-    </main>
+        );
+      }) : <small>No data</small>}
+    </section>
   );
 }
 
