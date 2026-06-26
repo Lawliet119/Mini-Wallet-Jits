@@ -1,8 +1,8 @@
 /**
  * transactionEngineService.js
  *
- * Generic transaction engine. Business WHAT lives in ServiceConfig,
- * TransactionField, TransactionValidation, and TransactionDefinition.
+ * Generic transaction engine. Business WHAT lives in Service,
+ * TransField, TransValidation, Fee, and TransDefinition.
  */
 var makeError = function(code) {
   var err = new Error(code);
@@ -163,7 +163,8 @@ var resolveMapping = function(source, context) {
 
 var resolveComputed = function(source, context) {
   if (source === 'fee.amount') {
-    return Number((context.service.metadata || {}).feeAmount || 0);
+    var fee = (context.fees || [])[0];
+    return Number((fee && fee.amount) || (context.service.metadata || {}).feeAmount || 0);
   }
 
   if (source === 'amount + fee') {
@@ -391,7 +392,7 @@ var runValidations = async function(stage, context) {
 };
 
 var loadServiceContext = async function(serviceCode, actor, parameters) {
-  var service = await ServiceConfig.findOne({
+  var service = await Service.findOne({
     code: serviceCode,
     status: 'active'
   });
@@ -402,18 +403,22 @@ var loadServiceContext = async function(serviceCode, actor, parameters) {
 
   return {
     service: service,
-    fields: await TransactionField.find({
+    fields: await TransField.find({
       service: service.id,
       status: 'active'
     }).sort('order ASC'),
-    validations: await TransactionValidation.find({
+    validations: await TransValidation.find({
       service: service.id,
       status: 'active'
     }).sort('ruleOrder ASC'),
-    definitions: await TransactionDefinition.find({
+    definitions: await TransDefinition.find({
       service: service.id,
       status: 'active'
     }).sort('stepOrder ASC'),
+    fees: await Fee.find({
+      service: service.id,
+      status: 'active'
+    }).sort('createdAt ASC'),
     actor: actor,
     auth: {
       customer: actor.role === 'customer' ? actor.user : {},
@@ -453,7 +458,7 @@ var assertActorCanUseTrail = function(trail, service, actor) {
 };
 
 var findServiceFromTrail = async function(trail) {
-  var service = await ServiceConfig.findOne({
+  var service = await Service.findOne({
     code: trail.service,
     status: 'active'
   });

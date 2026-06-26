@@ -1,12 +1,14 @@
 /**
- * TransactionDefinition.js
+ * TransDefinition.js
  *
  * Configured ledger movement step for a service.
  */
 module.exports = {
+  tableName: 'transactiondefinition',
+
   attributes: {
     service: {
-      model: 'serviceconfig',
+      model: 'service',
       required: true
     },
 

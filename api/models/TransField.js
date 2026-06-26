@@ -1,12 +1,14 @@
 /**
- * TransactionField.js
+ * TransField.js
  *
  * Field contract and input-building metadata for a service.
  */
 module.exports = {
+  tableName: 'transactionfield',
+
   attributes: {
     service: {
-      model: 'serviceconfig',
+      model: 'service',
       required: true
     },
 

@@ -30,7 +30,7 @@ var toPublicService = function(service) {
 module.exports = {
   listServices: async function(req, res) {
     try {
-      var services = await ServiceConfig.find({
+      var services = await Service.find({
         status: 'active'
       }).sort('code ASC');
 
@@ -46,7 +46,7 @@ module.exports = {
   serviceDetail: async function(req, res) {
     try {
       var codeOrId = req.params.code;
-      var service = await ServiceConfig.findOne({
+      var service = await Service.findOne({
         or: [
           { code: codeOrId },
           { id: codeOrId }
@@ -57,18 +57,22 @@ module.exports = {
         throw makeError('BAD_REQUEST');
       }
 
-      var definitions = await TransactionDefinition.find({
+      var definitions = await TransDefinition.find({
         service: service.id
       }).sort('stepOrder ASC');
-      var fields = await TransactionField.find({
+      var fields = await TransField.find({
         service: service.id
       }).sort('order ASC');
-      var validations = await TransactionValidation.find({
+      var validations = await TransValidation.find({
         service: service.id
       }).sort('ruleOrder ASC');
+      var fees = await Fee.find({
+        service: service.id
+      }).sort('createdAt ASC');
 
       return res.ok({
         service: toPublicService(service),
+        fees: fees,
         definitions: definitions,
         fields: fields,
         validations: validations

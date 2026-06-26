@@ -18,6 +18,7 @@ module.exports.policies = {
   ***************************************************************************/
 
   AccessController: {
+    login: true,
     registerCustomer: true,
     loginCustomer: true,
     registerOfficer: true,

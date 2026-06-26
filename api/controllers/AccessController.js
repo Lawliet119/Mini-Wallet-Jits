@@ -29,6 +29,54 @@ var publicOfficer = function(officer) {
 };
 
 module.exports = {
+  login: async function(req, res) {
+    try {
+      var phone = normalizePhone(req.body.phone);
+      var pin = req.body.pin;
+      var customer;
+      var officer;
+
+      if (!phone || !isValidPin(pin)) {
+        return res.error(respCode.BAD_REQUEST);
+      }
+
+      customer = await Customer.findOne({ phone: phone });
+      if (customer && (await pinService.verify(pin, customer.pinHash))) {
+        if (customer.status !== 'active') {
+          return res.error(respCode.ACCOUNT_LOCKED);
+        }
+
+        return res.ok({
+          accessToken: tokenService.issue(customer, 'customer'),
+          tokenType: 'Bearer',
+          role: 'customer',
+          user: publicCustomer(customer),
+          customer: publicCustomer(customer)
+        });
+      }
+
+      officer = await Officer.findOne({ phone: phone });
+      if (officer && (await pinService.verify(pin, officer.pinHash))) {
+        if (officer.status !== 'active') {
+          return res.error(respCode.ACCOUNT_LOCKED);
+        }
+
+        return res.ok({
+          accessToken: tokenService.issue(officer, 'officer'),
+          tokenType: 'Bearer',
+          role: 'officer',
+          user: publicOfficer(officer),
+          officer: publicOfficer(officer)
+        });
+      }
+
+      return res.error(respCode.INVALID_CREDENTIALS);
+    } catch (err) {
+      sails.log.error(err);
+      return res.error(respCode.SERVER_ERROR);
+    }
+  },
+
   registerCustomer: async function(req, res) {
     try {
       var phone = normalizePhone(req.body.phone);

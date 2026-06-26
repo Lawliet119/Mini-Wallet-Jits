@@ -23,6 +23,7 @@ module.exports.routes = {
   'GET /styles/importer.css': 'AssetController.styles',
   'GET /js/wallet-app.js': 'AssetController.walletApp',
 
+  'POST /api/v1/access/login': 'AccessController.login',
   'POST /api/v1/customers/register': 'AccessController.registerCustomer',
   'POST /api/v1/customers/login': 'AccessController.loginCustomer',
   'POST /api/v1/officers/register': 'AccessController.registerOfficer',

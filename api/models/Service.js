@@ -1,9 +1,11 @@
 /**
- * ServiceConfig.js
+ * Service.js
  *
  * High-level config record for one transaction service.
  */
 module.exports = {
+  tableName: 'serviceconfig',
+
   attributes: {
     code: {
       type: 'string',
@@ -48,17 +50,22 @@ module.exports = {
     },
 
     definitions: {
-      collection: 'transactiondefinition',
+      collection: 'transdefinition',
       via: 'service'
     },
 
     fields: {
-      collection: 'transactionfield',
+      collection: 'transfield',
       via: 'service'
     },
 
     validations: {
-      collection: 'transactionvalidation',
+      collection: 'transvalidation',
+      via: 'service'
+    },
+
+    fees: {
+      collection: 'fee',
       via: 'service'
     }
   }

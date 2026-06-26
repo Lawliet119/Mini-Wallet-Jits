@@ -32,7 +32,9 @@ var toPublicBiller = function(biller) {
 
 var toPublicTransaction = function(transaction, currentCustomerId) {
   var senderId = transaction.sender ? transaction.sender.id || transaction.sender : null;
-  var isOutgoing = senderId && String(senderId) === String(currentCustomerId);
+  var receiverId = transaction.receiver ? transaction.receiver.id || transaction.receiver : null;
+  var isIncoming = receiverId && String(receiverId) === String(currentCustomerId);
+  var isOutgoing = senderId && String(senderId) === String(currentCustomerId) && !isIncoming;
 
   return {
     id: transaction.id,

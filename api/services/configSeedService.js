@@ -79,6 +79,40 @@ var services = [{
     validation(4, 'verify', 'validateBankBalance', 'SENDERPOCKETID:AMOUNT', '3002', 'INSUFFICIENT_BALANCE')
   ]
 }, {
+  code: 'BANK_TOPUP',
+  name: 'Top Up From Bank',
+  type: 'top_up',
+  authMethod: 'PIN',
+  description: 'Customer pulls value from a linked bank source into the wallet.',
+  metadata: {
+    feeAmount: 0,
+    actorRole: 'customer',
+    flow: ['request', 'confirm', 'verify']
+  },
+  definitions: [{
+    stepOrder: 1,
+    stage: 'verify',
+    debitSource: 'BANKPOCKETID',
+    creditSource: 'SENDERPOCKETID',
+    amountSource: 'TRANSBODY.AMOUNT',
+    description: 'Move top-up amount from linked bank to customer wallet'
+  }],
+  fields: [
+    field(1, 'SERVICEID', 'constant', 'service.code', 'string', 'SERVICEID', true),
+    field(2, 'SENDERID', 'mapping', 'auth.customer.id', 'string', 'SENDERID', true),
+    field(3, 'RECEIVERID', 'mapping', 'auth.customer.id', 'string', 'RECEIVERID', true),
+    field(4, 'SENDERPOCKETID', 'query', 'sender.customerPocket', 'string', 'SENDERPOCKETID', true),
+    field(5, 'AMOUNT', 'mapping', 'parameters.amount', 'number', 'AMOUNT', true, 1, 20),
+    field(6, 'TOTALAMOUNT', 'mapping', 'parameters.amount', 'number', 'TOTALAMOUNT', true),
+    field(7, 'CURRENCY', 'mapping', 'senderPocket.currency', 'string', 'CURRENCY', true, 3, 3, '^(VND)$'),
+    field(8, 'BANKPOCKETID', 'query', 'system.bankPocket', 'string', 'BANKPOCKETID', true)
+  ],
+  validations: [
+    validation(1, 'request', 'validateAmountPositive', 'AMOUNT', '3001', 'INVALID_AMOUNT'),
+    validation(2, 'request', 'validateBankBalance', 'BANKPOCKETID:AMOUNT', '3002', 'INSUFFICIENT_BALANCE'),
+    validation(3, 'verify', 'validatePin', 'SENDERID:PIN', '1002', 'INVALID_CREDENTIALS')
+  ]
+}, {
   code: 'BILL_PAYMENT',
   name: 'Bill Payment',
   type: 'bill_payment',
@@ -159,10 +193,11 @@ function validation(ruleOrder, stage, ruleFunction, input, errorCode, errorMessa
 }
 
 async function upsertService(seed) {
-  var service = await ServiceConfig.findOne({ code: seed.code });
+  var service = await Service.findOne({ code: seed.code });
+  var feeAmount = Number((seed.metadata || {}).feeAmount || 0);
 
   if (service) {
-    service = await ServiceConfig.updateOne({ id: service.id }).set({
+    service = await Service.updateOne({ id: service.id }).set({
       name: seed.name,
       version: service.version || 1,
       type: seed.type,
@@ -172,7 +207,7 @@ async function upsertService(seed) {
       status: 'active'
     });
   } else {
-    service = await ServiceConfig.create({
+    service = await Service.create({
       code: seed.code,
       name: seed.name,
       version: 1,
@@ -184,26 +219,37 @@ async function upsertService(seed) {
     }).fetch();
   }
 
-  await TransactionDefinition.destroy({ service: service.id });
-  await TransactionField.destroy({ service: service.id });
-  await TransactionValidation.destroy({ service: service.id });
+  await TransDefinition.destroy({ service: service.id });
+  await TransField.destroy({ service: service.id });
+  await TransValidation.destroy({ service: service.id });
+  await Fee.destroy({ service: service.id });
 
-  await TransactionDefinition.createEach(seed.definitions.map((definition) => {
+  await TransDefinition.createEach(seed.definitions.map((definition) => {
     return Object.assign({}, definition, {
       service: service.id,
       status: 'active'
     });
   }));
-  await TransactionField.createEach(seed.fields.map((serviceField) => {
+  await TransField.createEach(seed.fields.map((serviceField) => {
     return Object.assign({}, serviceField, {
       service: service.id
     });
   }));
-  await TransactionValidation.createEach(seed.validations.map((serviceValidation) => {
+  await TransValidation.createEach(seed.validations.map((serviceValidation) => {
     return Object.assign({}, serviceValidation, {
       service: service.id
     });
   }));
+  await Fee.create({
+    service: service.id,
+    feeType: feeAmount > 0 ? 'flat' : 'none',
+    amount: feeAmount,
+    currency: sails.config.custom.seedCurrency || 'VND',
+    status: 'active',
+    metadata: {
+      source: 'seed'
+    }
+  });
 
   return service;
 }

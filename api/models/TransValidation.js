@@ -1,12 +1,14 @@
 /**
- * TransactionValidation.js
+ * TransValidation.js
  *
  * Ordered business validations for a service.
  */
 module.exports = {
+  tableName: 'transactionvalidation',
+
   attributes: {
     service: {
-      model: 'serviceconfig',
+      model: 'service',
       required: true
     },
 
