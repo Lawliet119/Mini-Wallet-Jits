@@ -47,6 +47,8 @@ module.exports = {
       var pin = req.body.pin;
       var customer;
       var officer;
+      var accessToken;
+      var refreshToken;
 
       if (!phone || !isValidPin(pin)) {
         return res.error(respCode.BAD_REQUEST);
@@ -58,8 +60,8 @@ module.exports = {
           return res.error(respCode.ACCOUNT_LOCKED);
         }
 
-        var accessToken = tokenService.issue(customer, 'customer');
-        var refreshToken = tokenService.issueRefresh(customer, 'customer');
+        accessToken = tokenService.issue(customer, 'customer');
+        refreshToken = tokenService.issueRefresh(customer, 'customer');
         setRefreshTokenCookie(res, refreshToken);
 
         return res.ok({
@@ -77,8 +79,8 @@ module.exports = {
           return res.error(respCode.ACCOUNT_LOCKED);
         }
 
-        var accessToken = tokenService.issue(officer, 'officer');
-        var refreshToken = tokenService.issueRefresh(officer, 'officer');
+        accessToken = tokenService.issue(officer, 'officer');
+        refreshToken = tokenService.issueRefresh(officer, 'officer');
         setRefreshTokenCookie(res, refreshToken);
 
         return res.ok({
@@ -271,7 +273,7 @@ module.exports = {
         tokenType: 'Bearer',
         role: payload.role
       });
-    } catch (err) {
+    } catch (unusedErr) {
       clearRefreshTokenCookie(res);
       return res.error(respCode.UNAUTHORIZED);
     }

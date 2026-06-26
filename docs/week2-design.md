@@ -1,407 +1,128 @@
-# Mini-Wallet Week 2 Design
+# Mini Wallet Week 2 Design
 
-Tài liệu này là gói thiết kế mức high-level cho Week 2. Nội dung gồm:
+Tai lieu nay mo ta thiet ke hien tai cua project Mini Wallet theo huong
+config-driven. Chi tiet ERD va sequence duoc tach rieng de de review:
 
-- Sequence P2P đã làm trong mini-mini-wallet.
-- Overview các model cần có cho mini-wallet config-driven.
-- Ba sequence thiết kế: P2P transfer, Cash-in, Bill Payment.
+- [ERD](./ERD.md)
+- [Sequence diagrams](./SEQUENCE_DIAGRAMS.md)
 
-## 1. P2P Sequence Đã Làm Trong Mini-Mini-Wallet
+## 1. Muc Tieu Thiet Ke
 
-Mini-mini-wallet hiện tại có 3 model chính:
+Mini Wallet tach WHAT khoi HOW:
 
-| Model | Vai trò |
-|---|---|
-| `Customer` | Lưu khách hàng, `phone`, `passwordHash`, liên kết một `Pocket` |
-| `Pocket` | Lưu số dư hiện tại của customer |
-| `Transaction` | Lưu lịch sử chuyển tiền thành công |
+- WHAT: cau hinh nghiep vu nam trong DB: `Service`, `TransField`, `Fee`,
+  `TransValidation`, `TransDefinition`, `Biller`.
+- HOW: engine tong quat `transactionEngineService` doc config va chay chung
+  `request -> confirm -> verify`.
+- Khong viet rieng `chuyenTien()`, `napTien()`, `traHoaDon()` theo tung
+  nghiep vu. Frontend chi gui `serviceCode` va tham so can thiet.
 
-Flow P2P hiện tại nằm ở:
+## 2. Tai Khoan Demo
 
-- `TransactionController.transfer`
-- `transferService.execute`
+| Role | Phone | PIN | Ghi chu |
+|---|---|---|---|
+| Customer sender | `0703900625` | `123456` | Co vi VND seed san |
+| Customer receiver | `0334760905` | `123456` | Dung de test P2P |
+| Cash-in operator | `0900000000` | `123456` | Sau login vao Cash-in/Config |
 
-```mermaid
-sequenceDiagram
-    autonumber
-    actor Customer
-    participant API as TransactionController.transfer
-    participant Service as transferService.execute
-    participant CustomerModel as Customer
-    participant PocketModel as Pocket
-    participant Mongo as MongoDB Session
-    participant TxModel as Transaction
+Du lieu biller demo:
 
-    Customer->>API: POST /api/v1/transaction/transfer
-    API->>API: validate receiverPhone, amount, note
-    API->>Service: execute(senderCustomerId, receiverPhone, amount, note)
+| Biller | Bill code | Amount | Currency |
+|---|---|---:|---|
+| `EVN` | `EVN001` | `50000` | `VND` |
 
-    Service->>CustomerModel: findOne({ phone: receiverPhone })
-    CustomerModel-->>Service: receiver
-    Service->>Service: reject if receiver not found
-    Service->>Service: reject if receiver.id == senderCustomerId
+## 3. App Hien Tai
 
-    Service->>PocketModel: find sender pocket
-    Service->>PocketModel: find receiver pocket
-    PocketModel-->>Service: senderPocket, receiverPocket
-    Service->>Service: reject if any pocket missing
+Frontend:
 
-    Service->>Mongo: startSession()
-    Service->>Mongo: startTransaction()
-    Service->>Mongo: debit sender pocket with $inc, balance >= amount
-    alt insufficient balance
-        Mongo-->>Service: modifiedCount != 1
-        Service->>Mongo: abortTransaction()
-        Service-->>API: throw INSUFFICIENT_BALANCE
-    else debit ok
-        Service->>Mongo: credit receiver pocket with $inc
-        Service->>Mongo: insert Transaction(type=transfer, status=success)
-        Service->>Mongo: commitTransaction()
-        Service-->>API: transaction, receiverPhone, newBalance
-        API-->>Customer: success response
-    end
-    Service->>Mongo: endSession()
-```
+- React/Vite tai `frontend/`.
+- Man login chi co mot form `phone + PIN`.
+- `Register` public chi tao customer wallet.
+- Sau login backend tra `role`, frontend moi biet user la customer hay operator.
+- Customer thay `Payments` va `Activity`.
+- Operator thay `Cash-in` va `Config`.
 
-Điểm đã làm tốt:
+Backend:
 
-- Có transaction DB thật cho debit/credit.
-- Có check receiver tồn tại.
-- Có check không chuyển cho chính mình.
-- Có check đủ số dư bằng điều kiện `balance: { $gte: amount }`.
-- Có ghi `Transaction` sau khi chuyển tiền.
+- Sails API, MongoDB.
+- JWT access token + refresh token cookie.
+- Pocket checksum de phat hien sua so du ngoai engine.
+- Pocket lock khi verify de giam race condition.
+- Ledger tao `Transaction` va `PocketEntry` trong mot Mongo transaction.
 
-Điểm cần nâng cấp trong mini-wallet Week 2:
+## 4. API Chinh
 
-- Tách flow thành 3 bước `requestTransaction -> confirmTransaction -> verifyTransaction`.
-- Thêm `TransactionTrail` để trace cả giao dịch pending/failed.
-- Thêm `PocketEntry` để ghi từng bút toán.
-- Thêm config-driven engine thay vì hard-code P2P.
-- Thêm fee, PIN auth, checksum, lock account.
+| Method | Path | Role | Muc dich |
+|---|---|---|---|
+| `POST` | `/api/v1/access/login` | public | Login chung customer/officer |
+| `POST` | `/api/v1/customers/register` | public | Dang ky customer wallet |
+| `POST` | `/api/v1/access/refresh` | cookie | Cap lai access token |
+| `POST` | `/api/v1/access/logout` | cookie | Xoa refresh cookie |
+| `GET` | `/api/v1/wallet/balance` | customer | Xem so du vi |
+| `GET` | `/api/v1/billers` | customer | Lay biller active |
+| `GET` | `/api/v1/config/services` | officer | Xem danh sach service config |
+| `GET` | `/api/v1/config/services/:code` | officer | Xem fields/fees/validations/glSteps |
+| `GET` | `/api/v1/transactions/history` | customer | Lich su giao dich |
+| `POST` | `/api/v1/transactions/request` | bearer | Tao preview/pending trail |
+| `POST` | `/api/v1/transactions/confirm` | bearer | Chuan bi xac thuc |
+| `POST` | `/api/v1/transactions/verify` | bearer | Xac thuc va chay tien |
 
-## 2. Overview Model Cho Mini-Wallet
+## 5. Service Config Da Seed
 
-### 2.1 Nhóm Identity
+| Service code | Actor | Auth | Fee | Luong tien |
+|---|---|---|---:|---|
+| `P2P_TRANSFER` | customer | `PIN` | `0` | Customer sender -> Customer receiver |
+| `BANK_TOPUP` | customer | `PIN` | `0` | Bank pocket -> Customer wallet |
+| `CASH_IN` | officer | `NONE` | `0` | Bank pocket -> Customer wallet |
+| `BILL_PAYMENT` | customer | `PIN` | `1000` | Customer -> Biller, Customer -> System fee |
 
-| Model | Vai trò chính |
-|---|---|
-| `Customer` | Người dùng cuối, đăng nhập bằng phone + PIN |
-| `Officer` | Admin/operator, trigger cash-in và quản trị config |
-| `Biller` | Nhà cung cấp hóa đơn, có `inquiryUrl`, `paymentUrl`, và một pocket nhận tiền |
-| `Currency` | Loại tiền, scope hiện tại chỉ cần một currency |
+Phan biet `BANK_TOPUP` va `CASH_IN`:
 
-### 2.2 Nhóm Wallet / Ledger
+- `BANK_TOPUP`: user tu bam nap tu bank lien ket vao vi, giong nut nap tien
+  trong app vi dien tu.
+- `CASH_IN`: operator/backoffice xac nhan tien ben ngoai roi nap ho vao vi khach.
 
-| Model | Vai trò chính |
-|---|---|
-| `Pocket` | Ví giữ số dư của customer/system/bank/biller, có `balance`, `checksum`, `status` |
-| `PocketEntry` | Dòng ghi sổ cho từng bút toán debit/credit |
-| `Transaction` | Biên lai chính thức sau khi tiền đã chạy |
-| `TransactionTrail` | Hồ sơ runtime của một giao dịch qua Request/Confirm/Verify |
+## 6. Mapping File Theo Khoi Thiet Ke
 
-### 2.3 Nhóm Config-Driven
+| Khoi trong design | File/model hien tai | Ghi chu |
+|---|---|---|
+| `Service` | `api/models/Service.js` | Khai bao service, auth, metadata |
+| `Service.fieldBuilder` | `api/models/TransField.js` | Cac field build vao `TRANSBODY` |
+| `TransField` | `api/models/TransField.js` | Validate shape/format field |
+| `Fee` | `api/models/Fee.js` | Phi theo service |
+| `TransValidation` | `api/models/TransValidation.js` | Rule nghiep vu theo stage |
+| `TransDefinition (glSteps)` | `api/models/TransDefinition.js` | Debit/credit pocket source |
+| `Biller.inquiryUrl` | `api/models/Biller.js` | Mock inquiry qua `mockBillerService` |
+| `Biller.paymentUrl` | `api/models/Biller.js` | Mock payment qua `mockBillerService` |
+| Runtime trail | `api/models/TransactionTrail.js` | Log request/confirm/verify |
+| Final receipt | `api/models/Transaction.js` | Giao dich da ghi so |
+| Ledger entry | `api/models/PocketEntry.js` | Dong but toan debit/credit |
 
-| Model | Vai trò chính |
-|---|---|
-| `Service` | Khai báo nghiệp vụ, auth, fee, action, fieldBuilder |
-| `TransField` | Validate định dạng field trong `TRANSBODY` |
-| `TransValidation` | Validate nghiệp vụ bằng các rule function đã code sẵn |
-| `TransDefinition` | Chứa `glSteps`, mô tả tiền đi từ ví nào sang ví nào |
+Luu y: mot so model config co `tableName` cu de giu collection Mongo hien co khi
+doi ten file/model cho dung thuat ngu design.
 
-### 2.4 Quan Hệ Tổng Quan
-
-```mermaid
-erDiagram
-    Customer ||--|| Pocket : owns
-    Biller ||--|| Pocket : owns
-    Service ||--o{ TransField : has
-    Service ||--o{ TransValidation : has
-    Service ||--|| TransDefinition : has
-    Service ||--o{ TransactionTrail : runs
-    TransactionTrail ||--o| Transaction : produces
-    TransactionTrail ||--o{ PocketEntry : records
-    Pocket ||--o{ PocketEntry : debited_or_credited
-    Biller ||--o{ TransactionTrail : used_by_bill_payment
-```
-
-## 3. Runtime Chung
+## 7. Runtime Chung
 
 ```text
 requestTransaction -> confirmTransaction -> verifyTransaction
 ```
 
-| Runtime | Mục đích | Tiền chạy? |
+| Step | Lam gi | Tien chay? |
 |---|---|---|
-| Request | Build input, validate format, inquiry nếu là bill, tính phí, validate nghiệp vụ, tạo Trail pending | Không |
-| Confirm | Trả `authMethod` (`PIN` hoặc `NONE`) cho frontend | Không |
-| Verify | Lock sender, verify PIN, validate lại, chạy `glSteps`, tạo Transaction/PocketEntry | Có |
+| Request | Load service config, build `TRANSBODY`, tinh fee, chay validation request, tao `TransactionTrail` pending | Chua |
+| Confirm | Doc `authMethod`, append step log confirm | Chua |
+| Verify | Kiem PIN neu can, chay validation verify/external, lock pocket, doc `glSteps`, ghi ledger | Co |
 
-Config cần nhìn ra được từ sequence:
+## 8. Checklist Review
 
-| Config | Request | Confirm | Verify |
-|---|---:|---:|---:|
-| `Service.fieldBuilder` | Có | Không | Không |
-| `TransField` | Có | Không | Có |
-| `Service.fee` | Có | Không | Có |
-| `TransValidation` | Có | Không | Có |
-| `Service.auth` | Không | Có | Có |
-| `TransDefinition.glSteps` | Không | Không | Có |
-| `Biller.inquiryUrl` | Bill only | Không | Không |
-| `Biller.paymentUrl` | Không | Không | Bill only, sau khi thu tiền |
-
-## 4. Sequence 1 - P2P Transfer
-
-### 4.1 Config Cần Có
-
-| Config | Nội dung |
-|---|---|
-| `Service` | `action: none`, `auth: PIN`, fee cố định hoặc phần trăm |
-| `fieldBuilder` | `SERVICEID`, `SENDERID`, `RECEIVERPHONE`, `RECEIVERID`, `AMOUNT`, `CURRENCY`, optional `MESSAGE` |
-| `TransField` | Bắt buộc có `SERVICEID`, `RECEIVERPHONE`, `AMOUNT`, `CURRENCY` |
-| `TransValidation` | Receiver tồn tại, sender != receiver, sender đủ số dư, checksum hợp lệ |
-| `glSteps` | Sender -> Receiver cho `AMOUNT`; Sender -> System cho `DEBITFEE` |
-
-### 4.2 Sequence
-
-```mermaid
-sequenceDiagram
-    autonumber
-    actor Customer
-    participant API as TransactionController
-    participant TxEngine as Transaction.js
-    participant Neon as NeonMessage.js
-    participant Service
-    participant Trail as TransactionTrail
-    participant Field as TransField
-    participant Validation as TransValidation
-    participant Definition as TransDefinition
-    participant Pocket
-    participant Entry as PocketEntry
-    participant Tx as Transaction
-
-    Customer->>API: requestTransaction(serviceId, receiverPhone, amount)
-    API->>TxEngine: engineRequestTransaction(body, user)
-    TxEngine->>Neon: routeProcess(TRANSTEP=1)
-    Neon->>Service: buildTransactionFields(fieldBuilder)
-    Service-->>Neon: TRANSBODY(SERVICEID, SENDERID, RECEIVERID, AMOUNT)
-    Neon->>Trail: init inputMessage/outputMessage
-    Trail-->>Neon: transRefId
-    Neon->>Field: validateFields(TRANSBODY)
-    Neon->>Service: calculate fee
-    Service-->>Neon: DEBITFEE, TOTALAMOUNT
-    Neon->>Validation: validateTransaction(TRANSBODY)
-    Neon->>Trail: update status = pending
-    Neon-->>Customer: preview(amount, fee, totalAmount, transRefId)
-
-    Customer->>API: confirmTransaction(transRefId)
-    API->>TxEngine: engineConfirmTransaction(body, user)
-    TxEngine->>Neon: routeProcess(TRANSTEP=2)
-    Neon->>Trail: find pending trail
-    Neon->>Service: read auth config
-    Service-->>Neon: authMethod = PIN
-    Neon-->>Customer: authMethod, transRefId
-
-    Customer->>API: verifyTransaction(transRefId, pin)
-    API->>TxEngine: engineVerifyTransaction(body, user)
-    TxEngine->>Neon: routeProcess(TRANSTEP=3)
-    Neon->>Trail: find pending trail
-    Neon->>Pocket: validateStateAndLock(SENDERID)
-    Neon->>Neon: verify PIN
-    Neon->>Field: validateFields(TRANSBODY)
-    Neon->>Service: recalculate fee
-    Neon->>Validation: validateTransaction(TRANSBODY)
-    Neon->>Definition: get glSteps
-    Neon->>Pocket: begin DB transaction
-    loop each glStep
-        Neon->>Pocket: debit pocket
-        Neon->>Pocket: credit pocket
-        Neon->>Entry: create PocketEntry
-    end
-    Neon->>Tx: create Transaction(done)
-    Neon->>Trail: update status = done
-    Neon->>Pocket: commit DB transaction
-    Neon->>Pocket: releaseAccount(SENDERID)
-    Neon-->>Customer: receipt
-```
-
-## 5. Sequence 2 - Cash-in
-
-Cash-in là giao dịch Officer trigger. Customer không tự nạp tiền.
-
-### 5.1 Config Cần Có
-
-| Config | Nội dung |
-|---|---|
-| `Service` | `action: none`, `auth: NONE`, fee = 0 |
-| `fieldBuilder` | `SERVICEID`, `SENDERID` = Bank pocket, `RECEIVERPHONE`, `RECEIVERID`, `AMOUNT`, `CURRENCY` |
-| `TransField` | `SERVICEID`, `RECEIVERPHONE`, `AMOUNT`, `CURRENCY` |
-| `TransValidation` | Officer hợp lệ, Bank đủ số dư, receiver tồn tại, checksum hợp lệ |
-| `glSteps` | Bank -> Customer cho `AMOUNT` |
-
-### 5.2 Sequence
-
-```mermaid
-sequenceDiagram
-    autonumber
-    actor Officer
-    participant API as AdminTransactionController
-    participant TxEngine as Transaction.js
-    participant Neon as NeonMessage.js
-    participant Service
-    participant Trail as TransactionTrail
-    participant Validation as TransValidation
-    participant Definition as TransDefinition
-    participant Pocket
-    participant Entry as PocketEntry
-    participant Tx as Transaction
-
-    Officer->>API: cashIn(customerPhone, amount)
-    API->>API: authorize Officer
-    API->>TxEngine: engineRequestTransaction(serviceId, customerPhone, amount)
-    TxEngine->>Neon: routeProcess(TRANSTEP=1)
-    Neon->>Service: buildTransactionFields(Bank -> Customer)
-    Neon->>Trail: init and set status = pending
-    Neon->>Validation: validate Bank balance and receiver
-    Neon-->>API: preview(transRefId, authMethod=NONE)
-
-    API->>TxEngine: engineVerifyTransaction(transRefId)
-    TxEngine->>Neon: routeProcess(TRANSTEP=3)
-    Neon->>Trail: find pending trail
-    Neon->>Pocket: lock Bank pocket
-    Neon->>Validation: validate again
-    Neon->>Definition: get glSteps
-    Neon->>Pocket: begin DB transaction
-    Neon->>Pocket: debit Bank pocket
-    Neon->>Pocket: credit Customer pocket
-    Neon->>Entry: create PocketEntry
-    Neon->>Tx: create Transaction(done)
-    Neon->>Trail: update status = done
-    Neon->>Pocket: commit DB transaction
-    Neon->>Pocket: release Bank pocket
-    Neon-->>Officer: receipt
-```
-
-## 6. Sequence 3 - Bill Payment
-
-Bill Payment có 2 external call:
-
-- `inquiryUrl` ở Request để tra hóa đơn và lấy số tiền.
-- `paymentUrl` ở Verify, nhưng chỉ gọi sau khi đã thu tiền khách thành công.
-
-Mentor note: không gọi payment trước khi thu tiền khách.
-
-### 6.1 Config Cần Có
-
-| Config | Nội dung |
-|---|---|
-| `Service` | `action: billerTrans`, `auth: PIN`, fee cố định hoặc phần trăm |
-| `Biller` | `inquiryUrl`, `paymentUrl`, `pocketId`, thông tin hóa đơn mẫu |
-| `fieldBuilder` | `SERVICEID`, `SENDERID`, `BILLERID`, `BILLCODE`, `RECEIVERID` = biller/suspense pocket, `CURRENCY` |
-| `TransField` | `SERVICEID`, `BILLERID`, `BILLCODE`, `CURRENCY` |
-| `TransValidation` | Biller active, invoice payable, sender đủ số dư, checksum hợp lệ |
-| `glSteps` | Sender -> Biller/Suspense cho `AMOUNT`; Sender -> System cho `DEBITFEE` |
-
-`AMOUNT` không lấy từ customer input. Request gọi `inquiryUrl` rồi ghi đè `TRANSBODY.AMOUNT`.
-
-### 6.2 Sequence
-
-```mermaid
-sequenceDiagram
-    autonumber
-    actor Customer
-    participant API as TransactionController
-    participant TxEngine as Transaction.js
-    participant Neon as NeonMessage.js
-    participant Service
-    participant Biller
-    participant Trail as TransactionTrail
-    participant Field as TransField
-    participant Validation as TransValidation
-    participant Definition as TransDefinition
-    participant Pocket
-    participant Entry as PocketEntry
-    participant Tx as Transaction
-
-    Customer->>API: requestTransaction(serviceId, billerId, billCode)
-    API->>TxEngine: engineRequestTransaction(body, user)
-    TxEngine->>Neon: routeProcess(TRANSTEP=1)
-    Neon->>Service: buildTransactionFields(fieldBuilder)
-    Service-->>Neon: TRANSBODY(SENDERID, BILLERID, BILLCODE, RECEIVERID)
-    Neon->>Trail: init inputMessage/outputMessage
-    Trail-->>Neon: transRefId
-    Neon->>Field: validateFields(TRANSBODY)
-    Neon->>Biller: inquiryUrl(billCode, transRefId)
-    Biller-->>Neon: invoiceAmount, invoiceInfo
-    Neon->>Neon: set TRANSBODY.AMOUNT = invoiceAmount
-    Neon->>Service: calculate fee and total
-    Neon->>Validation: validateTransaction(TRANSBODY)
-    Neon->>Trail: update status = pending
-    Neon-->>Customer: preview(invoiceAmount, fee, totalAmount, transRefId)
-
-    Customer->>API: confirmTransaction(transRefId)
-    API->>TxEngine: engineConfirmTransaction(body, user)
-    TxEngine->>Neon: routeProcess(TRANSTEP=2)
-    Neon->>Trail: find pending trail
-    Neon->>Service: read auth config
-    Service-->>Neon: authMethod = PIN
-    Neon-->>Customer: authMethod, transRefId
-
-    Customer->>API: verifyTransaction(transRefId, pin)
-    API->>TxEngine: engineVerifyTransaction(body, user)
-    TxEngine->>Neon: routeProcess(TRANSTEP=3)
-    Neon->>Trail: find pending trail
-    Neon->>Pocket: validateStateAndLock(SENDERID)
-    Neon->>Neon: verify PIN
-    Neon->>Field: validateFields(TRANSBODY)
-    Neon->>Service: recalculate fee and total
-    Neon->>Validation: validateTransaction(TRANSBODY)
-    Neon->>Definition: get collection glSteps
-
-    Neon->>Pocket: begin DB transaction
-    loop collect money first
-        Neon->>Pocket: debit sender pocket
-        Neon->>Pocket: credit biller/suspense/system pocket
-        Neon->>Entry: create PocketEntry
-    end
-    Neon->>Tx: create Transaction(status=external_pending)
-    Neon->>Trail: update status = external_pending
-    Neon->>Pocket: commit DB transaction
-    Neon->>Pocket: releaseAccount(SENDERID)
-
-    Neon->>Biller: paymentUrl(billCode, amount, transRefId)
-    alt payment success
-        Biller-->>Neon: success, billerRefId
-        Neon->>Tx: update status = done, billerRefId
-        Neon->>Trail: update status = done
-        Neon-->>Customer: receipt(done)
-    else payment failed
-        Biller-->>Neon: failed
-        Neon->>Tx: update status = external_failed
-        Neon->>Trail: update status = external_failed
-        Neon->>Neon: create refund/compensation task
-        Neon-->>Customer: external payment failed, refund pending
-    end
-```
-
-### 6.3 Lưu Ý Thiết Kế Bill Payment
-
-- `inquiryUrl` chỉ tra cứu nên được gọi ở Request.
-- `paymentUrl` làm thay đổi trạng thái bên biller nên chỉ gọi sau khi đã thu tiền khách.
-- Không đặt HTTP call trong DB transaction.
-- `paymentUrl` phải nhận `transRefId` để idempotent.
-- Nếu biller fail sau khi đã thu tiền, không xóa transaction cũ; tạo refund/compensation để đối soát.
-
-## 7. Review Checklist
-
-- [ ] Có sequence P2P mini-mini-wallet hiện tại.
-- [ ] Có overview model.
-- [ ] Có đủ 3 sequence design: P2P, Cash-in, Bill Payment.
-- [ ] Từ mỗi sequence nhìn ra config cần có.
-- [ ] `TransField` luôn có `SERVICEID`.
-- [ ] P2P auth `PIN`, fee về System.
-- [ ] Cash-in auth `NONE`, Officer trigger, Bank -> Customer.
-- [ ] Bill Payment inquiry ở Request.
-- [ ] Bill Payment thu tiền khách trước rồi mới gọi `paymentUrl`.
-- [ ] Verify là nơi duy nhất đổi số dư.
-- [ ] Debit/credit nội bộ nằm trong DB transaction.
-- [ ] Lock sender luôn được release.
+- [x] Login public khong lo role truoc khi dang nhap.
+- [x] Register tao customer wallet.
+- [x] Customer co P2P, Bank top-up, Bill payment, Activity.
+- [x] Operator co Cash-in Desk va Config.
+- [x] Config-driven engine doc `Service`, `TransField`, `Fee`,
+  `TransValidation`, `TransDefinition`.
+- [x] `BILL_PAYMENT` request co inquiry mock biller.
+- [x] `BILL_PAYMENT` verify goi mock payment truoc khi ghi ledger noi bo; neu
+  biller fail thi khong tru tien vi trong implementation hien tai.
+- [x] Verify la noi duy nhat lam thay doi so du.
+- [x] Ledger ghi `Transaction` va `PocketEntry`.

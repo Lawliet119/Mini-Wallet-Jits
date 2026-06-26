@@ -23,6 +23,8 @@ module.exports.policies = {
     loginCustomer: true,
     registerOfficer: true,
     loginOfficer: true,
+    refresh: true,
+    logout: true,
     me: ['bearer']
   },
 
