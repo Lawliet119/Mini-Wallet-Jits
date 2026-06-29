@@ -101,14 +101,24 @@ module.exports = {
 
   lockPocket: async function(pocketId) {
     var pocket = await this.getVerifiedPocket(pocketId);
+    var lockedPocket;
 
     if (pocket.status === 'locked') {
       throw makeError('POCKET_ALREADY_LOCKED');
     }
 
-    return Pocket.updateOne({ id: pocket.id }).set({
+    lockedPocket = await Pocket.updateOne({
+      id: pocket.id,
+      status: 'active'
+    }).set({
       status: 'locked'
     });
+
+    if (!lockedPocket) {
+      throw makeError('POCKET_ALREADY_LOCKED');
+    }
+
+    return lockedPocket;
   },
 
   releasePocket: async function(pocketId) {

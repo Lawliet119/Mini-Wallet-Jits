@@ -13,6 +13,20 @@
  * https://sailsjs.com/docs/concepts/models-and-orm/model-settings
  */
 
+var isProduction = process.env.NODE_ENV === 'production';
+
+var getDataEncryptionKey = function() {
+  if (process.env.DATA_ENCRYPTION_KEY) {
+    return process.env.DATA_ENCRYPTION_KEY;
+  }
+
+  if (isProduction) {
+    throw new Error('DATA_ENCRYPTION_KEY must be set in production');
+  }
+
+  return 'fC8Sg1WvQtKFQ9PnnrfXs8ordDYEQEpYRYUrMWFb2jk=';
+};
+
 module.exports.models = {
 
 
@@ -35,7 +49,7 @@ module.exports.models = {
   *                                                                          *
   ***************************************************************************/
 
-  // schema: true,
+  schema: true,
 
 
   /***************************************************************************
@@ -90,7 +104,7 @@ module.exports.models = {
   ******************************************************************************/
 
   dataEncryptionKeys: {
-    default: 'fC8Sg1WvQtKFQ9PnnrfXs8ordDYEQEpYRYUrMWFb2jk='
+    default: getDataEncryptionKey()
   },
 
 

@@ -3,6 +3,7 @@
  *
  * Executes balanced pocket movements inside one native Mongo transaction.
  */
+var crypto = require('crypto');
 var ObjectId = require('mongodb').ObjectId;
 
 var makeError = function(code) {
@@ -40,7 +41,7 @@ var signNativePocket = function(doc, nextBalance) {
 };
 
 var makeTransactionCode = function() {
-  return 'TX' + Date.now() + Math.floor(Math.random() * 1000000);
+  return 'TX' + Date.now() + crypto.randomBytes(4).toString('hex').toUpperCase();
 };
 
 var addUniquePocketId = function(ids, pocketId) {
@@ -206,7 +207,7 @@ module.exports = {
 
         var transactionResult = await transactionCollection.insertOne(transactionDoc, { session: session });
 
-        await trailCollection.updateOne({
+        var trailUpdateResult = await trailCollection.updateOne({
           _id: trailObjectId,
           status: 'pending'
         }, {
@@ -225,6 +226,10 @@ module.exports = {
             }
           }
         }, { session: session });
+
+        if (trailUpdateResult.modifiedCount !== 1) {
+          throw makeError('TRANSFER_FAILED');
+        }
 
         result = {
           transRefId: String(trail.id),

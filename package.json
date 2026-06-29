@@ -9,10 +9,8 @@
     "@sailshq/lodash": "^3.10.6",
     "@sailshq/socket.io-redis": "^6.1.2",
     "bcryptjs": "^3.0.3",
-    "grunt": "1.0.4",
     "jsonwebtoken": "^9.0.3",
     "sails": "^1.5.18",
-    "sails-hook-grunt": "^5.0.0",
     "sails-hook-orm": "^4.0.3",
     "sails-hook-sockets": "^3.0.0",
     "sails-mongo": "^2.1.2"
@@ -20,8 +18,13 @@
   "devDependencies": {
     "eslint": "5.16.0"
   },
+  "overrides": {
+    "sails-mongo": {
+      "qs": "^6.15.3"
+    }
+  },
   "scripts": {
-    "start": "NODE_ENV=production node app.js",
+    "start": "node -e \"process.env.NODE_ENV='production'; require('./app')\"",
     "frontend:dev": "npm --prefix frontend run dev",
     "frontend:build": "npm --prefix frontend run build",
     "test": "npm run lint && npm run custom-tests && echo 'Done.'",

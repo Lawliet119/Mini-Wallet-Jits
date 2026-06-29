@@ -206,7 +206,7 @@ var resolveQuery = async function(source, context) {
   if (source === 'system.bankPocket') {
     context.bankPocket = await pocketService.createInternalPocket('bank', {
       currency: getCurrency(context),
-      balance: 1000000000
+      balance: sails.config.custom.seedBankBalance || 1000000000
     });
     return context.bankPocket.id;
   }
@@ -457,6 +457,20 @@ var assertActorCanUseTrail = function(trail, service, actor) {
   }
 };
 
+var trailHasStep = function(trail, step) {
+  return (trail.transStepLog || []).some((entry) => {
+    return entry && entry.step === step;
+  });
+};
+
+var assertConfirmCompletedIfRequired = function(trail, service) {
+  var flow = (service.metadata || {}).flow || [];
+
+  if (flow.indexOf('confirm') !== -1 && !trailHasStep(trail, 'CONFIRM_DONE')) {
+    throw makeError('BAD_REQUEST');
+  }
+};
+
 var findServiceFromTrail = async function(trail) {
   var service = await Service.findOne({
     code: trail.service,
@@ -508,25 +522,31 @@ var buildLedgerSteps = function(definitions, transBody) {
 var lockDebitPockets = async function(steps) {
   var locked = [];
 
-  for (var index = 0; index < steps.length; index++) {
-    var pocketId = String(steps[index].debitPocket);
-    if (locked.indexOf(pocketId) === -1) {
-      await pocketService.lockPocket(pocketId);
-      locked.push(pocketId);
+  try {
+    for (var index = 0; index < steps.length; index++) {
+      var pocketId = String(steps[index].debitPocket);
+      if (locked.indexOf(pocketId) === -1) {
+        await pocketService.lockPocket(pocketId);
+        locked.push(pocketId);
+      }
     }
+  } catch (err) {
+    // Avoid leaving earlier debit pockets locked when a later lock fails.
+    await releasePockets(locked);
+    throw err;
   }
 
   return locked;
 };
 
-var releasePockets = async function(pocketIds) {
+async function releasePockets(pocketIds) {
   for (var index = 0; index < pocketIds.length; index++) {
     var pocket = await Pocket.findOne({ id: pocketIds[index] });
     if (pocket && pocket.status === 'locked') {
       await pocketService.releasePocket(pocketIds[index]);
     }
   }
-};
+}
 
 var compactCustomer = function(customer) {
   if (!customer) {
@@ -645,6 +665,7 @@ module.exports = {
 
     context.transBody = transBody;
     assertActorCanUseTrail(trail, service, options.actor);
+    assertConfirmCompletedIfRequired(trail, service);
     await runValidations('verify', context);
 
     steps = buildLedgerSteps(context.definitions, transBody);

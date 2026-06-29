@@ -103,11 +103,26 @@ module.exports = {
       throw makeError('INVALID_AMOUNT');
     }
 
-    await MockInvoice.updateOne({ id: invoice.id }).set({
+    var paidInvoice = await MockInvoice.updateOne({
+      id: invoice.id,
+      status: 'unpaid'
+    }).set({
       status: 'paid',
       paidTransRefId: String(options.transRefId),
       paidAt: Date.now()
     });
+
+    if (!paidInvoice) {
+      invoice = await MockInvoice.findOne({ id: options.invoiceId });
+      if (invoice && invoice.paidTransRefId === String(options.transRefId)) {
+        return {
+          billerRefId: makeBillerRefId(options.transRefId),
+          idempotent: true
+        };
+      }
+
+      throw makeError('INVOICE_ALREADY_PAID');
+    }
 
     return {
       billerRefId: makeBillerRefId(options.transRefId),

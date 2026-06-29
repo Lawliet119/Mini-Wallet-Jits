@@ -7,6 +7,20 @@ var codeMap = function(err) {
   return respCode[err.code] || respCode.SERVER_ERROR;
 };
 
+var toPageNumber = function(value, fallback, max) {
+  var parsed = Number(value);
+
+  if (!Number.isSafeInteger(parsed) || parsed < 0) {
+    return fallback;
+  }
+
+  if (max !== undefined) {
+    return Math.min(parsed, max);
+  }
+
+  return parsed;
+};
+
 var toPublicCustomer = function(customer) {
   if (!customer) {
     return null;
@@ -109,8 +123,8 @@ module.exports = {
 
   history: async function(req, res) {
     try {
-      var limit = Math.min(Number(req.query.limit) || 20, 100);
-      var skip = Number(req.query.skip) || 0;
+      var limit = toPageNumber(req.query.limit, 20, 100);
+      var skip = toPageNumber(req.query.skip, 0);
       var customerId = req.info.user.id;
       var criteria = {
         or: [

@@ -40,6 +40,10 @@ module.exports = {
     code: 2002,
     message: 'Pocket checksum is invalid'
   },
+  POCKET_ALREADY_LOCKED: {
+    code: 2003,
+    message: 'Pocket is busy. Please try again'
+  },
   INVALID_AMOUNT: {
     code: 3001,
     message: 'Amount must be a positive integer'

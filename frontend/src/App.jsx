@@ -71,6 +71,14 @@ function readStoredJson(key) {
   }
 }
 
+function readSessionValue(key) {
+  try {
+    return sessionStorage.getItem(key) || '';
+  } catch (unusedErr) {
+    return '';
+  }
+}
+
 function formatMoney(amount, currency) {
   return new Intl.NumberFormat('vi-VN').format(Number(amount || 0)) + ' ' + (currency || 'VND');
 }
@@ -383,8 +391,8 @@ function LatestTransactions({ history, onLoadHistory, onLoadDetail }) {
 
 function App() {
   const [mode, setMode] = useState('customer');
-  const [customerToken, setCustomerToken] = useState(() => localStorage.getItem('miniWallet.customerToken') || '');
-  const [officerToken, setOfficerToken] = useState(() => localStorage.getItem('miniWallet.officerToken') || '');
+  const [customerToken, setCustomerToken] = useState(() => readSessionValue('miniWallet.customerToken'));
+  const [officerToken, setOfficerToken] = useState(() => readSessionValue('miniWallet.officerToken'));
   const [customer, setCustomer] = useState(() => readStoredJson('miniWallet.customer'));
   const [officer, setOfficer] = useState(() => readStoredJson('miniWallet.officer'));
   const [form, setForm] = useState(initialForm);
@@ -401,7 +409,7 @@ function App() {
   const [billTransRefId, setBillTransRefId] = useState('');
   const [billStep, setBillStep] = useState('request');
   const [expandedTxId, setExpandedTxId] = useState(null);
-  const [showWorkspace, setShowWorkspace] = useState(() => Boolean(localStorage.getItem('miniWallet.customerToken') || localStorage.getItem('miniWallet.officerToken')));
+  const [showWorkspace, setShowWorkspace] = useState(() => Boolean(readSessionValue('miniWallet.customerToken') || readSessionValue('miniWallet.officerToken')));
 
   const hasSession = showWorkspace && Boolean(customerToken || officerToken);
   const activeRole = officerToken ? 'officer' : 'customer';
@@ -448,10 +456,10 @@ function App() {
           const newToken = refreshData.accessToken;
           if (refreshData.role === 'officer') {
             setOfficerToken(newToken);
-            localStorage.setItem('miniWallet.officerToken', newToken);
+            sessionStorage.setItem('miniWallet.officerToken', newToken);
           } else {
             setCustomerToken(newToken);
-            localStorage.setItem('miniWallet.customerToken', newToken);
+            sessionStorage.setItem('miniWallet.customerToken', newToken);
           }
           
           headers.Authorization = `Bearer ${newToken}`;
@@ -529,8 +537,9 @@ function App() {
       setCustomer(null);
       setPocket(null);
       setMode('officer');
-      localStorage.setItem('miniWallet.officerToken', data.accessToken);
+      sessionStorage.setItem('miniWallet.officerToken', data.accessToken);
       localStorage.setItem('miniWallet.officer', JSON.stringify(data.officer));
+      sessionStorage.removeItem('miniWallet.customerToken');
       localStorage.removeItem('miniWallet.customerToken');
       localStorage.removeItem('miniWallet.customer');
     } else {
@@ -539,8 +548,9 @@ function App() {
       setOfficerToken('');
       setOfficer(null);
       setMode('customer');
-      localStorage.setItem('miniWallet.customerToken', data.accessToken);
+      sessionStorage.setItem('miniWallet.customerToken', data.accessToken);
       localStorage.setItem('miniWallet.customer', JSON.stringify(data.customer));
+      sessionStorage.removeItem('miniWallet.officerToken');
       localStorage.removeItem('miniWallet.officerToken');
       localStorage.removeItem('miniWallet.officer');
     }
@@ -572,8 +582,9 @@ function App() {
     setMode('customer');
     setShowWorkspace(true);
     setForm((current) => ({ ...current, customerPin: '' }));
-    localStorage.setItem('miniWallet.customerToken', data.accessToken);
+    sessionStorage.setItem('miniWallet.customerToken', data.accessToken);
     localStorage.setItem('miniWallet.customer', JSON.stringify(data.customer));
+    sessionStorage.removeItem('miniWallet.officerToken');
     localStorage.removeItem('miniWallet.officerToken');
     localStorage.removeItem('miniWallet.officer');
 
@@ -582,7 +593,11 @@ function App() {
 
   function clearSession() {
     api('/api/v1/access/logout', { method: 'POST' }).catch(() => {});
-    ['miniWallet.customerToken', 'miniWallet.officerToken', 'miniWallet.customer', 'miniWallet.officer'].forEach((key) => localStorage.removeItem(key));
+    ['miniWallet.customerToken', 'miniWallet.officerToken'].forEach((key) => {
+      sessionStorage.removeItem(key);
+      localStorage.removeItem(key);
+    });
+    ['miniWallet.customer', 'miniWallet.officer'].forEach((key) => localStorage.removeItem(key));
     setCustomerToken('');
     setOfficerToken('');
     setCustomer(null);

@@ -7,8 +7,8 @@
   var state = {
     mode: 'customer',
     authRole: 'customer',
-    customerToken: localStorage.getItem('miniWallet.customerToken') || '',
-    officerToken: localStorage.getItem('miniWallet.officerToken') || '',
+    customerToken: readSessionValue('miniWallet.customerToken'),
+    officerToken: readSessionValue('miniWallet.officerToken'),
     customer: readJson('miniWallet.customer'),
     officer: readJson('miniWallet.officer'),
     p2pTransRefId: '',
@@ -24,6 +24,14 @@
       return JSON.parse(localStorage.getItem(key) || 'null');
     } catch (unusedErr) {
       return null;
+    }
+  }
+
+  function readSessionValue(key) {
+    try {
+      return sessionStorage.getItem(key) || '';
+    } catch (unusedErr) {
+      return '';
     }
   }
 
@@ -209,7 +217,10 @@
     state.customer = data.customer;
     state.mode = 'customer';
     state.authRole = 'customer';
-    localStorage.setItem('miniWallet.customerToken', state.customerToken);
+    sessionStorage.setItem('miniWallet.customerToken', state.customerToken);
+    sessionStorage.removeItem('miniWallet.officerToken');
+    localStorage.removeItem('miniWallet.customerToken');
+    localStorage.removeItem('miniWallet.officerToken');
     writeJson('miniWallet.customer', state.customer);
     await refreshBalance();
     return data;
@@ -229,7 +240,10 @@
     state.officer = data.officer;
     state.mode = 'officer';
     state.authRole = 'officer';
-    localStorage.setItem('miniWallet.officerToken', state.officerToken);
+    sessionStorage.setItem('miniWallet.officerToken', state.officerToken);
+    sessionStorage.removeItem('miniWallet.customerToken');
+    localStorage.removeItem('miniWallet.customerToken');
+    localStorage.removeItem('miniWallet.officerToken');
     writeJson('miniWallet.officer', state.officer);
     return data;
   }
@@ -366,12 +380,26 @@
     data.transactions.forEach((transaction) => {
       var item = document.createElement('div');
       var amountClass = transaction.direction === 'OUT' ? 'amount-out' : 'amount-in';
+      var title = document.createElement('strong');
+      var meta = document.createElement('span');
+      var code = document.createElement('small');
+      var detailButton = document.createElement('button');
+      var amount = document.createElement('span');
+
       item.className = 'history-item';
-      item.innerHTML = [
-        '<strong>' + transaction.type + '</strong>',
-        '<span><small>' + transaction.code + '</small><br>' + transaction.status + '</span>',
-        '<button type="button" data-transaction-id="' + transaction.id + '"><span class="' + amountClass + '">' + formatMoney(transaction.totalAmount, transaction.currency) + '</span></button>'
-      ].join('');
+      title.textContent = transaction.type;
+      code.textContent = transaction.code;
+      meta.appendChild(code);
+      meta.appendChild(document.createElement('br'));
+      meta.appendChild(document.createTextNode(transaction.status));
+      detailButton.type = 'button';
+      detailButton.dataset.transactionId = transaction.id;
+      amount.className = amountClass;
+      amount.textContent = formatMoney(transaction.totalAmount, transaction.currency);
+      detailButton.appendChild(amount);
+      item.appendChild(title);
+      item.appendChild(meta);
+      item.appendChild(detailButton);
       list.appendChild(item);
     });
     setText('[data-state="history"]', data.pagination.total + ' item(s)');
@@ -446,7 +474,11 @@
   }
 
   function clearSession() {
-    ['miniWallet.customerToken', 'miniWallet.officerToken', 'miniWallet.customer', 'miniWallet.officer'].forEach((key) => {
+    ['miniWallet.customerToken', 'miniWallet.officerToken'].forEach((key) => {
+      sessionStorage.removeItem(key);
+      localStorage.removeItem(key);
+    });
+    ['miniWallet.customer', 'miniWallet.officer'].forEach((key) => {
       localStorage.removeItem(key);
     });
     state.customerToken = '';

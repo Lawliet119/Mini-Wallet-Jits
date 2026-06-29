@@ -7,6 +7,10 @@ var normalizePhone = function(rawPhone) {
   return String(rawPhone || '').trim();
 };
 
+var isValidPhone = function(phone) {
+  return /^[0-9]{8,15}$/.test(String(phone || ''));
+};
+
 var isValidPin = function(pin) {
   return /^\d{4,12}$/.test(String(pin || ''));
 };
@@ -32,12 +36,24 @@ var setRefreshTokenCookie = function(res, token) {
   res.cookie('refreshToken', token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    path: '/api/v1/access',
     maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
   });
 };
 
 var clearRefreshTokenCookie = function(res) {
+  res.clearCookie('refreshToken', {
+    path: '/api/v1/access'
+  });
   res.clearCookie('refreshToken');
+};
+
+var phoneExistsInAnyRole = async function(phone) {
+  var matchedCustomer = await Customer.findOne({ phone: phone });
+  var matchedOfficer = await Officer.findOne({ phone: phone });
+
+  return Boolean(matchedCustomer || matchedOfficer);
 };
 
 module.exports = {
@@ -50,7 +66,7 @@ module.exports = {
       var accessToken;
       var refreshToken;
 
-      if (!phone || !isValidPin(pin)) {
+      if (!isValidPhone(phone) || !isValidPin(pin)) {
         return res.error(respCode.BAD_REQUEST);
       }
 
@@ -104,12 +120,11 @@ module.exports = {
       var phone = normalizePhone(req.body.phone);
       var pin = req.body.pin;
 
-      if (!phone || !isValidPin(pin)) {
+      if (!isValidPhone(phone) || !isValidPin(pin)) {
         return res.error(respCode.BAD_REQUEST);
       }
 
-      var existedCustomer = await Customer.findOne({ phone: phone });
-      if (existedCustomer) {
+      if (await phoneExistsInAnyRole(phone)) {
         return res.error(respCode.PHONE_ALREADY_EXISTS);
       }
 
@@ -145,7 +160,7 @@ module.exports = {
       var phone = normalizePhone(req.body.phone);
       var pin = req.body.pin;
 
-      if (!phone || !isValidPin(pin)) {
+      if (!isValidPhone(phone) || !isValidPin(pin)) {
         return res.error(respCode.BAD_REQUEST);
       }
 
@@ -178,12 +193,11 @@ module.exports = {
       var phone = normalizePhone(req.body.phone);
       var pin = req.body.pin;
 
-      if (!phone || !isValidPin(pin)) {
+      if (!isValidPhone(phone) || !isValidPin(pin)) {
         return res.error(respCode.BAD_REQUEST);
       }
 
-      var existedOfficer = await Officer.findOne({ phone: phone });
-      if (existedOfficer) {
+      if (await phoneExistsInAnyRole(phone)) {
         return res.error(respCode.PHONE_ALREADY_EXISTS);
       }
 
@@ -213,7 +227,7 @@ module.exports = {
       var phone = normalizePhone(req.body.phone);
       var pin = req.body.pin;
 
-      if (!phone || !isValidPin(pin)) {
+      if (!isValidPhone(phone) || !isValidPin(pin)) {
         return res.error(respCode.BAD_REQUEST);
       }
 

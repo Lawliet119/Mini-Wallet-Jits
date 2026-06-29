@@ -8,6 +8,20 @@
  * https://sailsjs.com/config/custom
  */
 
+var isProduction = process.env.NODE_ENV === 'production';
+
+var getSecret = function(envName, devFallback) {
+  if (process.env[envName]) {
+    return process.env[envName];
+  }
+
+  if (isProduction) {
+    throw new Error(envName + ' must be set in production');
+  }
+
+  return devFallback;
+};
+
 module.exports.custom = {
 
   /***************************************************************************
@@ -15,9 +29,9 @@ module.exports.custom = {
   * Any other custom config this Sails app should use during development.    *
   *                                                                          *
   ***************************************************************************/
-  jwtSecret: process.env.JWT_SECRET || 'dev-mini-wallet-change-me',
+  jwtSecret: getSecret('JWT_SECRET', 'dev-mini-wallet-change-me'),
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '2h',
-  checksumSecret: process.env.CHECKSUM_SECRET || 'dev-pocket-checksum-change-me',
+  checksumSecret: getSecret('CHECKSUM_SECRET', 'dev-pocket-checksum-change-me'),
   bootstrapSeed: process.env.BOOTSTRAP_SEED !== 'false',
   seedOfficerPhone: process.env.SEED_OFFICER_PHONE || '0900000000',
   seedOfficerPin: process.env.SEED_OFFICER_PIN || '123456',

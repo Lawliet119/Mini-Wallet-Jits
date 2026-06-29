@@ -9,6 +9,20 @@
  * https://sailsjs.com/config/session
  */
 
+var isProduction = process.env.NODE_ENV === 'production';
+
+var getSessionSecret = function() {
+  if (process.env.SESSION_SECRET) {
+    return process.env.SESSION_SECRET;
+  }
+
+  if (isProduction) {
+    throw new Error('SESSION_SECRET must be set in production');
+  }
+
+  return 'dev-mini-wallet-session-secret';
+};
+
 module.exports.session = {
 
   /***************************************************************************
@@ -18,7 +32,7 @@ module.exports.session = {
   * of your users, forcing them to log in again.                             *
   *                                                                          *
   ***************************************************************************/
-  secret: '45a0512ae0e6222f6a08b79599a1cbcb',
+  secret: getSessionSecret(),
 
 
   /***************************************************************************
