@@ -157,12 +157,14 @@ function AuthGate({ form, onChange, onLogin, onRegister, busy, authMessage }) {
           <span className="brand-mark">J.</span>
           <span>Mini Wallet</span>
         </div>
-        <div className="auth-copy">
-          <p className="eyebrow">Digital wallet operations</p>
-          <h1>Move money with a real transaction flow.</h1>
-          <p>Sign in, request, confirm, verify, then audit every entry from one config-driven wallet workspace.</p>
+        <div className="auth-hero">
+          <div className="auth-copy">
+            <p className="eyebrow">Digital wallet operations</p>
+            <h1>Move money with a real transaction flow.</h1>
+            <p>Sign in, request, confirm, verify, then audit every entry from one config-driven wallet workspace.</p>
+          </div>
+          <WalletIllustration />
         </div>
-        <WalletIllustration />
       </div>
 
       <div className="auth-card">

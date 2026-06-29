@@ -118,7 +118,10 @@ h3 {
   min-width: 0;
   overflow: hidden;
   border-right: 1px solid var(--line);
-  padding: 46px 54px;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 34px;
+  padding: 46px 54px 34px;
 }
 
 .brand-row {
@@ -154,21 +157,29 @@ h3 {
 }
 
 .auth-copy {
-  width: min(490px, 100%);
-  margin-top: 90px;
+  align-self: center;
+  max-width: 500px;
+  min-width: 0;
 }
 
 .auth-copy h1 {
   margin-bottom: 18px;
-  font-size: clamp(42px, 6vw, 72px);
+  font-size: 60px;
   line-height: 1.03;
 }
 
 .auth-copy p:not(.eyebrow) {
-  max-width: 420px;
+  max-width: 390px;
   color: var(--muted);
   font-size: 17px;
   line-height: 1.7;
+}
+
+.auth-hero {
+  display: grid;
+  grid-template-columns: minmax(360px, 1fr) minmax(230px, 300px);
+  gap: 22px;
+  align-items: end;
 }
 
 .auth-card {
@@ -239,19 +250,19 @@ h3 {
 }
 
 .wallet-illustration {
-  position: absolute;
-  right: 38px;
-  bottom: 52px;
-  width: 430px;
-  height: 300px;
+  position: relative;
+  justify-self: end;
+  align-self: end;
+  width: min(300px, 100%);
+  aspect-ratio: 43 / 30;
 }
 
 .wallet-body {
   position: absolute;
-  right: 78px;
-  bottom: 26px;
-  width: 250px;
-  height: 168px;
+  right: 18%;
+  bottom: 9%;
+  width: 58%;
+  height: 56%;
   border-radius: 8px;
   background: #0f847e;
   box-shadow: inset 0 16px 0 rgba(5, 86, 80, 0.22);
@@ -259,18 +270,18 @@ h3 {
 
 .wallet-flap {
   position: absolute;
-  inset: 22px 22px auto;
-  height: 22px;
+  inset: 13% 9% auto;
+  height: 13%;
   border-radius: 8px;
   background: #126e69;
 }
 
 .wallet-slot {
   position: absolute;
-  left: 44px;
-  bottom: 34px;
-  width: 110px;
-  height: 70px;
+  left: 18%;
+  bottom: 20%;
+  width: 44%;
+  height: 42%;
   border: 8px solid #ffb12d;
   border-radius: 8px;
   background: #ffd15c;
@@ -278,12 +289,12 @@ h3 {
 
 .coin-card {
   position: absolute;
-  right: 182px;
-  top: 38px;
+  right: 42%;
+  top: 13%;
   display: grid;
   place-items: center;
-  width: 84px;
-  height: 84px;
+  width: 20%;
+  aspect-ratio: 1;
   border-radius: 50%;
   color: #c96f00;
   background: #ffd15c;
@@ -294,30 +305,30 @@ h3 {
 
 .coin-stack {
   position: absolute;
-  left: 46px;
-  bottom: 24px;
-  width: 72px;
-  height: 88px;
+  left: 11%;
+  bottom: 8%;
+  width: 17%;
+  height: 29%;
   border-radius: 8px 8px 2px 2px;
   background: repeating-linear-gradient(to bottom, #ffd15c 0 13px, #edaa25 13px 16px);
 }
 
 .gear-card {
   position: absolute;
-  right: 16px;
-  bottom: 50px;
+  right: 4%;
+  bottom: 17%;
   display: grid;
   place-items: center;
-  width: 90px;
-  height: 90px;
+  width: 21%;
+  aspect-ratio: 1;
   border-radius: 8px;
   background: #0d716b;
   transform: rotate(12deg);
 }
 
 .gear-card span {
-  width: 46px;
-  height: 46px;
+  width: 52%;
+  height: 52%;
   border: 12px solid #43bdb5;
   border-radius: 50%;
   background: #0d716b;
@@ -1104,24 +1115,25 @@ pre {
   }
 }
 
-@media (max-width: 900px) {
-  .page-shell {
-    padding: 18px;
-  }
-
+@media (max-width: 1120px) {
   .auth-screen {
     grid-template-columns: 1fr;
   }
 
   .auth-brand {
-    min-height: 520px;
     border-right: 0;
     border-bottom: 1px solid var(--line);
     padding: 32px;
   }
 
-  .auth-copy {
-    margin-top: 42px;
+  .auth-hero {
+    grid-template-columns: minmax(0, 1fr) minmax(240px, 320px);
+    gap: 24px;
+    align-items: center;
+  }
+
+  .auth-copy h1 {
+    font-size: 56px;
   }
 
   .auth-card {
@@ -1129,10 +1141,31 @@ pre {
   }
 
   .wallet-illustration {
-    right: 12px;
-    bottom: 26px;
-    transform: scale(0.82);
-    transform-origin: right bottom;
+    width: min(320px, 100%);
+  }
+}
+
+@media (max-width: 900px) {
+  .page-shell {
+    padding: 18px;
+  }
+
+  .auth-brand {
+    padding: 32px;
+  }
+
+  .auth-hero {
+    grid-template-columns: minmax(0, 1fr) minmax(220px, 300px);
+    gap: 24px;
+    align-items: center;
+  }
+
+  .auth-copy h1 {
+    font-size: 52px;
+  }
+
+  .wallet-illustration {
+    width: min(300px, 100%);
   }
 
   .dashboard-topbar,
@@ -1187,8 +1220,12 @@ pre {
   }
 
   .auth-brand {
-    min-height: 480px;
     padding: 24px;
+  }
+
+  .auth-hero {
+    grid-template-columns: 1fr;
+    gap: 20px;
   }
 
   .auth-copy h1,
@@ -1196,9 +1233,13 @@ pre {
     font-size: 34px;
   }
 
+  .auth-copy p:not(.eyebrow) {
+    max-width: 100%;
+  }
+
   .wallet-illustration {
-    right: -54px;
-    transform: scale(0.68);
+    justify-self: center;
+    width: min(280px, 100%);
   }
 
   .form-grid,
