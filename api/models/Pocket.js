@@ -25,6 +25,21 @@ module.exports = {
       defaultsTo: 0
     },
 
+    availableBalance: {
+      type: 'number',
+      defaultsTo: 0
+    },
+
+    holdBalance: {
+      type: 'number',
+      defaultsTo: 0
+    },
+
+    settledBalance: {
+      type: 'number',
+      defaultsTo: 0
+    },
+
     checksum: {
       type: 'string',
       allowNull: true

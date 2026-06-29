@@ -89,16 +89,11 @@ async function ensureSeedCustomer(options) {
     pocket = await pocketService.createCustomerPocket(customer.id, options.currency);
   }
 
-  if (options.balance > 0 && pocket.balance < options.balance) {
-    var nextPocket = Object.assign({}, pocket, {
-      balance: options.balance,
-      status: 'active'
-    });
+  pocket = await pocketService.getVerifiedPocket(pocket.id);
 
-    await Pocket.updateOne({ id: pocket.id }).set({
-      balance: options.balance,
-      status: 'active',
-      checksum: checksumService.signPocket(nextPocket)
+  if (options.balance > 0 && pocket.availableBalance < options.balance) {
+    await pocketService.setBalanceSnapshot(pocket.id, options.balance, {
+      status: 'active'
     });
   }
 

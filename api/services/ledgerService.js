@@ -16,28 +16,39 @@ var toObjectId = function(id) {
   return new ObjectId(String(id));
 };
 
-var normalizePocket = function(doc) {
+var pocketPayload = function(doc) {
   return {
     id: String(doc._id),
     client: doc.client,
     customer: doc.customer ? String(doc.customer) : '',
     currency: doc.currency,
     balance: doc.balance,
+    availableBalance: doc.availableBalance,
+    holdBalance: doc.holdBalance,
+    settledBalance: doc.settledBalance,
     checksum: doc.checksum,
     status: doc.status
   };
 };
 
+var normalizePocket = function(doc) {
+  var pocket = pocketPayload(doc);
+
+  if (checksumService.hasLegacySignature(pocket)) {
+    return checksumService.normalizeLegacyPocketSnapshot(pocket);
+  }
+
+  return checksumService.normalizePocketSnapshot(pocket);
+};
+
 var assertPocketChecksum = function(doc) {
-  if (!checksumService.verifyPocket(normalizePocket(doc))) {
+  if (!checksumService.verifyPocket(pocketPayload(doc))) {
     throw makeError('POCKET_CHECKSUM_INVALID');
   }
 };
 
-var signNativePocket = function(doc, nextBalance) {
-  return checksumService.signPocket(Object.assign(normalizePocket(doc), {
-    balance: nextBalance
-  }));
+var signNativePocket = function(doc, snapshot) {
+  return checksumService.signPocket(Object.assign(normalizePocket(doc), snapshot));
 };
 
 var makeTransactionCode = function() {
@@ -120,16 +131,26 @@ module.exports = {
           pocketById[String(doc._id)] = doc;
         });
 
+        var nextBalanceSnapshots = {};
         var nextBalances = {};
         pocketIds.forEach((pocketId) => {
           var doc = pocketById[pocketId];
-          var nextBalance = Number(doc.balance) + Number(pocketDeltas[pocketId] || 0);
+          var currentPocket = normalizePocket(doc);
+          var delta = Number(pocketDeltas[pocketId] || 0);
+          var nextAvailableBalance = Number(currentPocket.availableBalance) + delta;
+          var nextSettledBalance = Number(currentPocket.settledBalance) + delta;
 
-          if (nextBalance < 0) {
+          if (nextAvailableBalance < 0 || nextSettledBalance < 0) {
             throw makeError('INSUFFICIENT_BALANCE');
           }
 
-          nextBalances[pocketId] = nextBalance;
+          nextBalanceSnapshots[pocketId] = {
+            balance: nextAvailableBalance,
+            availableBalance: nextAvailableBalance,
+            holdBalance: Number(currentPocket.holdBalance || 0),
+            settledBalance: nextSettledBalance
+          };
+          nextBalances[pocketId] = nextAvailableBalance;
         });
 
         for (var index = 0; index < pocketIds.length; index++) {
@@ -141,16 +162,15 @@ module.exports = {
             checksum: originalPocket.checksum
           };
 
-          if (delta < 0) {
-            filter.balance = {
-              $gte: Math.abs(delta)
-            };
-          }
+          var nextSnapshot = nextBalanceSnapshots[pocketId];
 
           var updateResult = await pocketCollection.updateOne(filter, {
             $set: {
-              balance: nextBalances[pocketId],
-              checksum: signNativePocket(originalPocket, nextBalances[pocketId]),
+              balance: nextSnapshot.balance,
+              availableBalance: nextSnapshot.availableBalance,
+              holdBalance: nextSnapshot.holdBalance,
+              settledBalance: nextSnapshot.settledBalance,
+              checksum: signNativePocket(originalPocket, nextSnapshot),
               updatedAt: now
             }
           }, { session: session });
@@ -167,6 +187,9 @@ module.exports = {
             debitPocket: toObjectId(step.debitPocket),
             creditPocket: toObjectId(step.creditPocket),
             amount: Number(step.amount),
+            debitAmount: Number(step.amount),
+            creditAmount: Number(step.amount),
+            balanceLayer: 'settled',
             currency: options.currency || 'VND',
             description: step.description || null,
             status: 'settled',
@@ -243,6 +266,7 @@ module.exports = {
             currency: transactionDoc.currency
           },
           pocketBalances: nextBalances,
+          pocketBalanceSnapshots: nextBalanceSnapshots,
           pocketEntryIds: entryIds
         };
       });

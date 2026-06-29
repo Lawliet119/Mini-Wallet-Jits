@@ -114,7 +114,7 @@ sequenceDiagram
     UI->>API: request(serviceCode=P2P_TRANSFER)
     API->>Engine: request()
     Engine->>Engine: build SENDERID, SENDERPOCKETID, RECEIVERID, RECEIVERPOCKETID, AMOUNT
-    Engine->>Engine: validate receiver exists, receiver != sender, amount > 0, sender balance
+    Engine->>Engine: validate receiver exists, receiver != sender, amount > 0, sender available balance
     Engine->>Trail: create pending
     Engine-->>UI: preview
 
@@ -152,7 +152,7 @@ sequenceDiagram
     UI->>API: request(serviceCode=BANK_TOPUP, amount)
     API->>Engine: request()
     Engine->>Engine: build SENDERID, SENDERPOCKETID, BANKPOCKETID, AMOUNT
-    Engine->>Engine: validate amount > 0, bank balance
+    Engine->>Engine: validate amount > 0, bank available balance
     Engine->>Trail: create pending
     Engine-->>UI: preview
 
@@ -225,7 +225,7 @@ sequenceDiagram
     Engine->>Biller: inquiry(billerId, billCode)
     Biller-->>Engine: invoice amount, currency, invoiceId
     Engine->>Engine: build AMOUNT tu invoice, fee tu Fee, TOTALAMOUNT
-    Engine->>Engine: validate biller, invoice unpaid, sender balance
+    Engine->>Engine: validate biller, invoice unpaid, sender available balance
     Engine->>Trail: create pending
     Engine-->>UI: preview invoice amount + fee
 
@@ -250,4 +250,3 @@ sequenceDiagram
         Engine-->>UI: failed, no wallet movement
     end
 ```
-

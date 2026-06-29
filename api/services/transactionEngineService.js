@@ -316,7 +316,7 @@ var validationHandlers = {
 
   validateSenderBalance: async function(values) {
     var pocket = await pocketService.getVerifiedPocket(values[0]);
-    if (Number(pocket.balance) < Number(values[1])) {
+    if (Number(pocket.availableBalance) < Number(values[1])) {
       throw makeError('INSUFFICIENT_BALANCE');
     }
   },
@@ -706,6 +706,7 @@ module.exports = {
           billerRefId: context.payment ? context.payment.billerRefId : undefined
         }),
         balances: ledger.pocketBalances,
+        balanceSnapshots: ledger.pocketBalanceSnapshots,
         pocketEntryIds: ledger.pocketEntryIds
       };
     } catch (err) {

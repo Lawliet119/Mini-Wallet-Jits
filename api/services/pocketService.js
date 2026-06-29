@@ -15,8 +15,44 @@ var assertPositiveAmount = function(amount) {
   }
 };
 
+var assertNonNegativeBalance = function(amount) {
+  if (!Number.isSafeInteger(amount) || amount < 0) {
+    throw makeError('INVALID_AMOUNT');
+  }
+};
+
+var makeSnapshot = function(availableBalance, holdBalance) {
+  var available = Number(availableBalance || 0);
+  var hold = Number(holdBalance || 0);
+
+  assertNonNegativeBalance(available);
+  assertNonNegativeBalance(hold);
+
+  return {
+    balance: available,
+    availableBalance: available,
+    holdBalance: hold,
+    settledBalance: available + hold
+  };
+};
+
+var needsSnapshotHydration = function(pocket, snapshot) {
+  return Number(pocket.balance) !== snapshot.balance ||
+    Number(pocket.availableBalance) !== snapshot.availableBalance ||
+    Number(pocket.holdBalance) !== snapshot.holdBalance ||
+    Number(pocket.settledBalance) !== snapshot.settledBalance;
+};
+
 var signPatch = function(pocket, patch) {
   return checksumService.signPocket(Object.assign({}, pocket, patch));
+};
+
+var normalizeVerifiedPocket = function(pocket) {
+  if (checksumService.hasLegacySignature(pocket)) {
+    return checksumService.normalizeLegacyPocketSnapshot(pocket);
+  }
+
+  return checksumService.normalizePocketSnapshot(pocket);
 };
 
 module.exports = {
@@ -34,12 +70,12 @@ module.exports = {
       return this.getVerifiedPocket(existedPocket.id);
     }
 
-    var pocket = await Pocket.create({
+    var snapshot = makeSnapshot(options.balance || 0);
+    var pocket = await Pocket.create(Object.assign({
       client: client,
       currency: options.currency || 'VND',
-      balance: options.balance || 0,
       checksum: null
-    }).fetch();
+    }, snapshot)).fetch();
 
     return Pocket.updateOne({ id: pocket.id }).set({
       checksum: checksumService.signPocket(pocket)
@@ -47,12 +83,11 @@ module.exports = {
   },
 
   createBillerPocket: async function(currency) {
-    var pocket = await Pocket.create({
+    var pocket = await Pocket.create(Object.assign({
       client: 'biller',
       currency: currency || 'VND',
-      balance: 0,
       checksum: null
-    }).fetch();
+    }, makeSnapshot(0))).fetch();
 
     return Pocket.updateOne({ id: pocket.id }).set({
       checksum: checksumService.signPocket(pocket)
@@ -60,13 +95,12 @@ module.exports = {
   },
 
   createCustomerPocket: async function(customerId, currency) {
-    var pocket = await Pocket.create({
+    var pocket = await Pocket.create(Object.assign({
       client: 'customer',
       customer: customerId,
       currency: currency || 'VND',
-      balance: 0,
       checksum: null
-    }).fetch();
+    }, makeSnapshot(0))).fetch();
 
     return Pocket.updateOne({ id: pocket.id }).set({
       checksum: checksumService.signPocket(pocket)
@@ -84,7 +118,18 @@ module.exports = {
       throw makeError('POCKET_CHECKSUM_INVALID');
     }
 
-    return pocket;
+    var normalizedPocket = normalizeVerifiedPocket(pocket);
+    if (needsSnapshotHydration(pocket, normalizedPocket)) {
+      return Pocket.updateOne({ id: pocket.id }).set({
+        balance: normalizedPocket.balance,
+        availableBalance: normalizedPocket.availableBalance,
+        holdBalance: normalizedPocket.holdBalance,
+        settledBalance: normalizedPocket.settledBalance,
+        checksum: checksumService.signPocket(normalizedPocket)
+      });
+    }
+
+    return normalizedPocket;
   },
 
   refreshChecksum: async function(pocketId) {
@@ -94,9 +139,33 @@ module.exports = {
       throw makeError('POCKET_NOT_FOUND');
     }
 
+    if (!checksumService.verifyPocket(pocket)) {
+      throw makeError('POCKET_CHECKSUM_INVALID');
+    }
+
+    var normalizedPocket = normalizeVerifiedPocket(pocket);
+
     return Pocket.updateOne({ id: pocket.id }).set({
-      checksum: checksumService.signPocket(pocket)
+      balance: normalizedPocket.balance,
+      availableBalance: normalizedPocket.availableBalance,
+      holdBalance: normalizedPocket.holdBalance,
+      settledBalance: normalizedPocket.settledBalance,
+      checksum: checksumService.signPocket(normalizedPocket)
     });
+  },
+
+  setBalanceSnapshot: async function(pocketId, availableBalance, options) {
+    var pocket = await this.getVerifiedPocket(pocketId);
+    var snapshot = makeSnapshot(availableBalance, (options || {}).holdBalance || 0);
+    var patch = Object.assign({}, snapshot);
+
+    if ((options || {}).status) {
+      patch.status = options.status;
+    }
+
+    patch.checksum = signPatch(pocket, patch);
+
+    return Pocket.updateOne({ id: pocket.id }).set(patch);
   },
 
   lockPocket: async function(pocketId) {
@@ -138,27 +207,37 @@ module.exports = {
 
     var pocket = await this.getVerifiedPocket(pocketId);
 
-    if (pocket.balance < amount) {
+    if (pocket.availableBalance < amount) {
       throw makeError('INSUFFICIENT_BALANCE');
     }
 
-    var newBalance = pocket.balance - amount;
+    var nextAvailableBalance = pocket.availableBalance - amount;
+    var nextSettledBalance = pocket.settledBalance - amount;
+    var snapshot = {
+      balance: nextAvailableBalance,
+      availableBalance: nextAvailableBalance,
+      settledBalance: nextSettledBalance
+    };
 
-    return Pocket.updateOne({ id: pocket.id }).set({
-      balance: newBalance,
-      checksum: signPatch(pocket, { balance: newBalance })
-    });
+    return Pocket.updateOne({ id: pocket.id }).set(Object.assign({}, snapshot, {
+      checksum: signPatch(pocket, snapshot)
+    }));
   },
 
   credit: async function(pocketId, amount) {
     assertPositiveAmount(amount);
 
     var pocket = await this.getVerifiedPocket(pocketId);
-    var newBalance = pocket.balance + amount;
+    var nextAvailableBalance = pocket.availableBalance + amount;
+    var nextSettledBalance = pocket.settledBalance + amount;
+    var snapshot = {
+      balance: nextAvailableBalance,
+      availableBalance: nextAvailableBalance,
+      settledBalance: nextSettledBalance
+    };
 
-    return Pocket.updateOne({ id: pocket.id }).set({
-      balance: newBalance,
-      checksum: signPatch(pocket, { balance: newBalance })
-    });
+    return Pocket.updateOne({ id: pocket.id }).set(Object.assign({}, snapshot, {
+      checksum: signPatch(pocket, snapshot)
+    }));
   }
 };

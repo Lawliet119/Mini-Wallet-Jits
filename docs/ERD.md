@@ -28,6 +28,9 @@ erDiagram
         string customer
         string currency
         number balance
+        number availableBalance
+        number holdBalance
+        number settledBalance
         string checksum
         string status
     }
@@ -39,6 +42,9 @@ erDiagram
         string debitPocket
         string creditPocket
         number amount
+        number debitAmount
+        number creditAmount
+        string balanceLayer
         string currency
         string status
     }
@@ -185,8 +191,8 @@ erDiagram
 
 | Model | Vai tro | File |
 |---|---|---|
-| `Pocket` | Vi tien cua customer/biller/system/bank, co `checksum` va `status` | `api/models/Pocket.js` |
-| `PocketEntry` | Dong ghi so cho tung buoc debit/credit | `api/models/PocketEntry.js` |
+| `Pocket` | Vi tien cua customer/biller/system/bank, co snapshot `availableBalance`, `holdBalance`, `settledBalance`, `checksum` va `status` | `api/models/Pocket.js` |
+| `PocketEntry` | Dong ghi so double-entry cho tung buoc debit/credit, co debit amount va credit amount rieng | `api/models/PocketEntry.js` |
 | `TransactionTrail` | Runtime record cua request/confirm/verify | `api/models/TransactionTrail.js` |
 | `Transaction` | Receipt chinh thuc sau khi ledger done | `api/models/Transaction.js` |
 
@@ -215,4 +221,3 @@ Mot so model config da doi ten de dung thuat ngu design, nhung van giu
 | `TransDefinition` | `transactiondefinition` |
 
 Ly do: de rename code cho de doc ma khong phai drop/import lai Mongo data.
-

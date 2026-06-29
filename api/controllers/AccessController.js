@@ -146,6 +146,9 @@ module.exports = {
         pocket: {
           id: pocket.id,
           balance: pocket.balance,
+          availableBalance: pocket.availableBalance,
+          holdBalance: pocket.holdBalance,
+          settledBalance: pocket.settledBalance,
           currency: pocket.currency
         }
       });

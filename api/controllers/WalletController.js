@@ -27,6 +27,9 @@ module.exports = {
           client: verifiedPocket.client,
           currency: verifiedPocket.currency,
           balance: verifiedPocket.balance,
+          availableBalance: verifiedPocket.availableBalance,
+          holdBalance: verifiedPocket.holdBalance,
+          settledBalance: verifiedPocket.settledBalance,
           status: verifiedPocket.status
         }
       });

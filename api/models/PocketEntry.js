@@ -30,6 +30,22 @@ module.exports = {
       required: true
     },
 
+    debitAmount: {
+      type: 'number',
+      required: true
+    },
+
+    creditAmount: {
+      type: 'number',
+      required: true
+    },
+
+    balanceLayer: {
+      type: 'string',
+      isIn: ['settled', 'hold'],
+      defaultsTo: 'settled'
+    },
+
     currency: {
       type: 'string',
       defaultsTo: 'VND'

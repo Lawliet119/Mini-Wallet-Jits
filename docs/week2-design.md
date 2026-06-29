@@ -48,7 +48,10 @@ Backend:
 - JWT access token + refresh token cookie.
 - Pocket checksum de phat hien sua so du ngoai engine.
 - Pocket lock khi verify de giam race condition.
-- Ledger tao `Transaction` va `PocketEntry` trong mot Mongo transaction.
+- Pocket balance duoc tach thanh `availableBalance`, `holdBalance`,
+  `settledBalance`; field `balance` duoc giu lam alias tuong thich cho UI/API cu.
+- Ledger tao `Transaction` va `PocketEntry` double-entry trong mot Mongo
+  transaction.
 
 ## 4. API Chinh
 
@@ -96,7 +99,7 @@ Phan biet `BANK_TOPUP` va `CASH_IN`:
 | `Biller.paymentUrl` | `api/models/Biller.js` | Mock payment qua `mockBillerService` |
 | Runtime trail | `api/models/TransactionTrail.js` | Log request/confirm/verify |
 | Final receipt | `api/models/Transaction.js` | Giao dich da ghi so |
-| Ledger entry | `api/models/PocketEntry.js` | Dong but toan debit/credit |
+| Ledger entry | `api/models/PocketEntry.js` | Dong but toan double-entry, co debit/credit amount va balance layer |
 
 Luu y: mot so model config co `tableName` cu de giu collection Mongo hien co khi
 doi ten file/model cho dung thuat ngu design.
@@ -125,4 +128,5 @@ requestTransaction -> confirmTransaction -> verifyTransaction
 - [x] `BILL_PAYMENT` verify goi mock payment truoc khi ghi ledger noi bo; neu
   biller fail thi khong tru tien vi trong implementation hien tai.
 - [x] Verify la noi duy nhat lam thay doi so du.
-- [x] Ledger ghi `Transaction` va `PocketEntry`.
+- [x] Ledger ghi `Transaction` va `PocketEntry` double-entry.
+- [x] Pocket co balance snapshot `available/hold/settled`.
